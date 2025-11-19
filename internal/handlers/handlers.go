@@ -25,3 +25,7 @@ func (app *Application) Start(h http.Handler) error {
 	log.Println(msg)
 	return nil
 }
+
+func (app *Application) GetExpenses(w http.ResponseWriter, r *http.Request) {
+
+}

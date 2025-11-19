@@ -7,11 +7,25 @@ import (
 )
 
 const (
-	envAppPort = "APP_PORT"
+	envAppPort       = "APP_PORT"
+	envVarDbHost     = "DB_HOST"
+	envVarDbPort     = "DB_PORT"
+	envVarDbUser     = "DB_USER"
+	envVarDbPassword = "DB_Password"
+	envVarDbName     = "DB_NAME"
 )
 
+type Postgresql struct {
+	Host     string
+	Port     string
+	Username string
+	Password string
+	Database string
+}
+
 type Config struct {
-	AppPort string
+	AppPort    string
+	Postgresql Postgresql
 }
 
 func NewConfig(path string) *Config {
@@ -20,8 +34,17 @@ func NewConfig(path string) *Config {
 		log.Fatal("Error loading .env file")
 	}
 
+	var db Postgresql = Postgresql{
+		Host:     getEnv(envVarDbHost, "localhost"),
+		Port:     getEnv(envVarDbPort, "5432"),
+		Username: getEnv(envVarDbUser, "postgres"),
+		Password: getEnv(envVarDbPassword, "postgres"),
+		Database: getEnv(envVarDbName, "postgres"),
+	}
+
 	return &Config{
-		AppPort: getEnv(envAppPort, "8080"),
+		AppPort:    getEnv(envAppPort, "8080"),
+		Postgresql: db,
 	}
 }
 
