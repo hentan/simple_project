@@ -7,5 +7,5 @@ type Expense struct {
 	Date    time.Time `json:"date"`
 	GiftFor string    `json:"gift_for"`
 	Surname string    `json:"surname"`
-	Sum     string    `json:"sum"`
+	Sum     int       `json:"sum"`
 }

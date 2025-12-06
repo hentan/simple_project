@@ -15,8 +15,8 @@ func main() {
 	fmt.Println(ctx)
 	envFilePath := ".env"
 	cfg := config.NewConfig(envFilePath)
-	repo := repository.New(cfg)
-	handler := handlers.New(repo)
+	repo := repository.New(cfg.Postgresql)
+	handler := handlers.New(repo, *cfg)
 	router := chi.NewRouter()
 	router.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("hello world"))
