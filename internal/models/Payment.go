@@ -1,7 +1,7 @@
 package models
 
 type Payment struct {
-	Id      int    `json:"id"`
-	Surname string `json:"surname"`
-	Summ    string `json:"sum"`
+	Id      int `json:"id"`
+	PupilID int `json:"pupil_id"`
+	Summ    int `json:"sum"`
 }

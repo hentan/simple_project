@@ -16,7 +16,7 @@ create table payments
     summ int
 );
 
-create table pupils_info(
+create table pupils(
     id serial,
     name varchar(100),
     surname varchar(100),
@@ -26,7 +26,7 @@ create table pupils_info(
 -- +goose Down
 -- +goose StatementBegin
 SELECT 'down SQL query';
--- +goose StatementEnd
 drop table expenses;
 drop table payments;
 drop table pupils;
+-- +goose StatementEnd

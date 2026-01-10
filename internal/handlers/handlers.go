@@ -22,8 +22,7 @@ type Handler interface {
 func (app *Application) Start(h http.Handler) error {
 	addr := app.config.AppPort
 	log.Printf("Starting server on %s\n", addr)
-
-	if err := http.ListenAndServe(addr, h); err != nil {
+	if err := http.ListenAndServe(":"+addr, h); err != nil {
 		return fmt.Errorf("listen and serve: %w", err)
 	}
 	return nil

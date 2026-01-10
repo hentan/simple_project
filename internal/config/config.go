@@ -1,18 +1,19 @@
 package config
 
 import (
-	"github.com/joho/godotenv"
 	"log"
 	"os"
+
+	"github.com/joho/godotenv"
 )
 
 const (
 	envAppPort       = "APP_PORT"
-	envVarDbHost     = "DB_HOST"
-	envVarDbPort     = "DB_PORT"
-	envVarDbUser     = "DB_USER"
-	envVarDbPassword = "DB_Password"
-	envVarDbName     = "DB_NAME"
+	envVarDbHost     = "POSTGRES_HOST"
+	envVarDbPort     = "POSTGRES_PORT"
+	envVarDbUser     = "POSTGRES_USER"
+	envVarDbPassword = "POSTGRES_Password"
+	envVarDbName     = "POSTGRES_NAME"
 )
 
 type Postgresql struct {
@@ -35,7 +36,7 @@ func NewConfig(path string) *Config {
 	}
 
 	var db Postgresql = Postgresql{
-		Host:     getEnv(envVarDbHost, "localhost"),
+		Host:     getEnv(envVarDbHost, "postgres"),
 		Port:     getEnv(envVarDbPort, "5432"),
 		Username: getEnv(envVarDbUser, "postgres"),
 		Password: getEnv(envVarDbPassword, "postgres"),
