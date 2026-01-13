@@ -28,17 +28,14 @@ sh:
 	$(COMPOSE) exec $(APP_SERVICE) sh
 
 psql:
-	$(COMPOSE) exec $(DB_SERVICE) psql -U $$POSTGRES_USER -d $$POSTGRES_DB
+	$(COMPOSE) exec $(DB_SERVICE) sh -c 'psql -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"'
 
-# --- migrations (goose) ---
 migrate-up:
-	$(COMPOSE) exec $(APP_SERVICE) \
-	$(GOOSE) -dir ./migrations postgres "$$DATABASE_DSN" up
+	$(COMPOSE) exec $(APP_SERVICE) sh -c '$(GOOSE) -dir ./migrations postgres "$$DATABASE_DSN" up'
 
 migrate-down:
-	$(COMPOSE) exec $(APP_SERVICE) \
-	$(GOOSE) -dir ./migrations postgres "$$DATABASE_DSN" down
+	$(COMPOSE) exec $(APP_SERVICE) sh -c '$(GOOSE) -dir ./migrations postgres "$$DATABASE_DSN" down'
 
 migrate-status:
-	$(COMPOSE) exec $(APP_SERVICE) \
-	$(GOOSE) -dir ./migrations postgres "$$DATABASE_DSN" status
+	$(COMPOSE) exec $(APP_SERVICE) sh -c '$(GOOSE) -dir ./migrations postgres "$$DATABASE_DSN" status'
+

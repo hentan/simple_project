@@ -1,5 +1,4 @@
 -- +goose Up
--- +goose StatementBegin
 SELECT 'up SQL query';
 create table expenses
 (
@@ -24,9 +23,7 @@ create table pupils(
     parent_phone varchar(50)
 );
 -- +goose Down
--- +goose StatementBegin
 SELECT 'down SQL query';
 drop table expenses;
 drop table payments;
 drop table pupils;
--- +goose StatementEnd
