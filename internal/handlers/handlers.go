@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"simple_project/internal/config"
+	"simple_project/internal/models"
 	"simple_project/internal/repository"
 )
 
@@ -47,4 +48,35 @@ func (app *Application) GetExpenses(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewEncoder(w).Encode(expenses); err != nil {
 		log.Printf("json encode error: %v", err)
 	}
+}
+
+func (app *Application) AddExpense(w http.ResponseWriter, r *http.Request) {
+	var expense models.Expense
+
+	if err := json.NewDecoder(r.Body).Decode(&expense); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		log.Printf("json decode error: %v", err)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	err := app.DB.AddExpense(&expense)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Printf("add expense to db error: %v", err)
+		return
+	}
+
+}
+
+func (app *Application) UpdateExpense(w http.ResponseWriter, r *http.Request) {
+	var expense models.Expense
+
+	if err := json.NewDecoder(r.Body).Decode(&expense); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		log.Printf("json decode error: %v", err)
+		return
+	}
+
 }
