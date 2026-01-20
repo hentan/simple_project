@@ -12,5 +12,8 @@ func Routes(h Handler) http.Handler {
 	mux.Use(middleware.Recoverer)
 	mux.Use(middleware.StripSlashes)
 	mux.Get("/expenses", h.GetExpenses)
+	mux.Post("/expense", h.AddExpense)
+	mux.Put("/expense", h.UpdateExpense)
+	mux.Delete("/expense", h.DeleteExpense)
 	return mux
 }

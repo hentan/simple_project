@@ -18,6 +18,9 @@ type Application struct {
 type Handler interface {
 	Start(h http.Handler) error
 	GetExpenses(w http.ResponseWriter, r *http.Request)
+	AddExpense(w http.ResponseWriter, r *http.Request)
+	UpdateExpense(w http.ResponseWriter, r *http.Request)
+	DeleteExpense(w http.ResponseWriter, r *http.Request)
 }
 
 func (app *Application) Start(h http.Handler) error {
@@ -59,8 +62,6 @@ func (app *Application) AddExpense(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
 	err := app.DB.AddExpense(&expense)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -68,6 +69,8 @@ func (app *Application) AddExpense(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 }
 
 func (app *Application) UpdateExpense(w http.ResponseWriter, r *http.Request) {
@@ -79,4 +82,30 @@ func (app *Application) UpdateExpense(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	err := app.DB.UpdateExpense(&expense)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Printf("update expense to db error: %v", err)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+
+}
+
+func (app *Application) DeleteExpense(w http.ResponseWriter, r *http.Request) {
+	var expense models.Expense
+
+	if err := json.NewDecoder(r.Body).Decode(&expense); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		log.Printf("json decode error: %v", err)
+		return
+	}
+
+	err := app.DB.DeleteExpense(&expense)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Printf("delete expense to db error: %v", err)
+		return
+	}
 }
