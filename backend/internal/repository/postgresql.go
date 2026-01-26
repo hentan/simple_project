@@ -67,7 +67,7 @@ func (repo *PostgresqlRepository) GetExpenses() ([]models.Expense, error) {
 	}
 	defer rows.Close()
 
-	var expenses []models.Expense
+	expenses := make([]models.Expense, 0)
 	for rows.Next() {
 		var expense models.Expense
 		if err := rows.Scan(

@@ -16,13 +16,25 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     throw new Error(text || `HTTP ${res.status}`);
   }
 
-  // 204 / empty
+  // Явно обработаем "нет контента"
+  if (res.status === 204) {
+    return undefined as unknown as T;
+  }
+
   const contentType = res.headers.get("content-type") || "";
   if (!contentType.includes("application/json")) {
     return undefined as unknown as T;
   }
-  return (await res.json()) as T;
+
+  // ВАЖНО: тело может быть пустым даже при application/json
+  const raw = await res.text();
+  if (!raw.trim()) {
+    return undefined as unknown as T;
+  }
+
+  return JSON.parse(raw) as T;
 }
+
 
 export async function getExpenses(): Promise<Expense[]> {
   return request<Expense[]>("/expenses", { method: "GET" });
