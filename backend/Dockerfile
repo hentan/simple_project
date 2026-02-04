@@ -10,6 +10,8 @@ RUN go mod download
 
 # Копируем весь проект, чтобы были cmd/, internal/, и т.д.
 COPY . .
+#Прогоним тесты
+RUN go test ./... -v
 
 RUN CGO_ENABLED=0 GOOS=linux go build -o /out/app ./cmd/app
 
