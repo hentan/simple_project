@@ -12,8 +12,12 @@ func Routes(h Handler) http.Handler {
 	mux.Use(middleware.Recoverer)
 	mux.Use(middleware.StripSlashes)
 	mux.Get("/expenses", h.GetExpenses)
-	mux.Post("/expense", h.AddExpense)
-	mux.Put("/expense", h.UpdateExpense)
-	mux.Delete("/expense", h.DeleteExpense)
+	mux.Post("/expenses", h.AddExpense)
+	mux.Put("/expenses", h.UpdateExpense)
+	mux.Delete("/expenses", h.DeleteExpense)
+	mux.Get("/payments", h.GetPayments)
+	mux.Post("/payments", h.AddPayment)
+	mux.Put("/payments", h.UpdatePayment)
+	mux.Delete("/payments", h.DeletePayment)
 	return mux
 }

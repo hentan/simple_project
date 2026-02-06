@@ -21,6 +21,10 @@ type Handler interface {
 	AddExpense(w http.ResponseWriter, r *http.Request)
 	UpdateExpense(w http.ResponseWriter, r *http.Request)
 	DeleteExpense(w http.ResponseWriter, r *http.Request)
+	GetPayments(w http.ResponseWriter, r *http.Request)
+	AddPayment(w http.ResponseWriter, r *http.Request)
+	UpdatePayment(w http.ResponseWriter, r *http.Request)
+	DeletePayment(w http.ResponseWriter, r *http.Request)
 }
 
 func (app *Application) Start(h http.Handler) error {
@@ -106,6 +110,66 @@ func (app *Application) DeleteExpense(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		log.Printf("delete expense to db error: %v", err)
+		return
+	}
+}
+
+func (app *Application) GetPayments(w http.ResponseWriter, r *http.Request) {
+	payments, err := app.DB.GetAllPayments()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	if err := json.NewEncoder(w).Encode(payments); err != nil {
+		log.Printf("json encode error: %v", err)
+	}
+}
+
+func (app *Application) AddPayment(w http.ResponseWriter, r *http.Request) {
+	var payment models.Payment
+	if err := json.NewDecoder(r.Body).Decode(&payment); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		log.Printf("json decode error: %v", err)
+		return
+	}
+	err := app.DB.AddPayment(&payment)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Printf("add payment to db error: %v", err)
+		return
+	}
+}
+
+func (app *Application) UpdatePayment(w http.ResponseWriter, r *http.Request) {
+	var payment models.Payment
+	if err := json.NewDecoder(r.Body).Decode(&payment); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		log.Printf("json decode error: %v", err)
+		return
+	}
+	err := app.DB.UpdatePayment(&payment)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Printf("update payment to db error: %v", err)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+}
+
+func (app *Application) DeletePayment(w http.ResponseWriter, r *http.Request) {
+	var payment models.Payment
+	if err := json.NewDecoder(r.Body).Decode(&payment); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		log.Printf("json decode error: %v", err)
+		return
+	}
+	err := app.DB.DeletePayment(&payment)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Printf("delete payment to db error: %v", err)
 		return
 	}
 }
