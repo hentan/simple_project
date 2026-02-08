@@ -25,6 +25,10 @@ type Handler interface {
 	AddPayment(w http.ResponseWriter, r *http.Request)
 	UpdatePayment(w http.ResponseWriter, r *http.Request)
 	DeletePayment(w http.ResponseWriter, r *http.Request)
+	GetPupils(w http.ResponseWriter, r *http.Request)
+	AddPupil(w http.ResponseWriter, r *http.Request)
+	UpdatePupil(w http.ResponseWriter, r *http.Request)
+	DeletePupil(w http.ResponseWriter, r *http.Request)
 }
 
 func (app *Application) Start(h http.Handler) error {
@@ -49,10 +53,20 @@ func (app *Application) GetExpenses(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
+	balance, err := app.GetBalance()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	expenseWithBalance := models.ExpenseWithBalance{
+		Expense: expenses,
+		Balance: balance,
+	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 
-	if err := json.NewEncoder(w).Encode(expenses); err != nil {
+	if err := json.NewEncoder(w).Encode(expenseWithBalance); err != nil {
 		log.Printf("json encode error: %v", err)
 	}
 }
@@ -172,4 +186,89 @@ func (app *Application) DeletePayment(w http.ResponseWriter, r *http.Request) {
 		log.Printf("delete payment to db error: %v", err)
 		return
 	}
+}
+
+func (app *Application) GetBalance() (int, error) {
+	sumExpenses, err := app.DB.GetSumExpenses()
+	if err != nil {
+		return 0, fmt.Errorf("get sum expenses: %w", err)
+	}
+
+	sumPayments, err := app.DB.GetSumPayments()
+	if err != nil {
+		return 0, fmt.Errorf("get sum payments: %w", err)
+	}
+
+	summBalance := sumExpenses - sumPayments
+	return summBalance, nil
+}
+
+func (app *Application) GetPupils(w http.ResponseWriter, r *http.Request) {
+	pupils, err := app.DB.GetPupils()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	if err := json.NewEncoder(w).Encode(pupils); err != nil {
+		log.Printf("json encode error: %v", err)
+	}
+
+}
+
+func (app *Application) AddPupil(w http.ResponseWriter, r *http.Request) {
+	var pupil models.Pupil
+	if err := json.NewDecoder(r.Body).Decode(&pupil); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		log.Printf("json decode error: %v", err)
+	}
+	err := app.DB.AddPupil(&pupil)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Printf("add pupil to db error: %v", err)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	return
+}
+
+func (app *Application) UpdatePupil(w http.ResponseWriter, r *http.Request) {
+	var pupil models.Pupil
+	if err := json.NewDecoder(r.Body).Decode(&pupil); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		log.Printf("json decode error: %v", err)
+		return
+	}
+	err := app.DB.UpdatePupil(&pupil)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Printf("update pupil to db error: %v", err)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	return
+
+}
+
+func (app *Application) DeletePupil(w http.ResponseWriter, r *http.Request) {
+	var pupil models.Pupil
+	if err := json.NewDecoder(r.Body).Decode(&pupil); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		log.Printf("json decode error: %v", err)
+		return
+	}
+	err := app.DB.DeletePupil(&pupil)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Printf("delete pupil to db error: %v", err)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	return
+
 }

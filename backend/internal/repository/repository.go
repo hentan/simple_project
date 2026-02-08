@@ -15,4 +15,10 @@ type Database interface {
 	UpdatePayment(payment *models.Payment) error
 	DeletePayment(payment *models.Payment) error
 	GetAllPayments() ([]models.Payment, error)
+	GetSumPayments() (int, error)
+	GetSumExpenses() (int, error)
+	GetPupils() ([]models.Pupil, error)
+	AddPupil(pupil *models.Pupil) error
+	UpdatePupil(pupil *models.Pupil) error
+	DeletePupil(pupil *models.Pupil) error
 }

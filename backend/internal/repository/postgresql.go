@@ -48,8 +48,6 @@ func connectToDB(dsn string) (*sql.DB, error) {
 	return db, nil
 }
 
-func (repo *PostgresqlRepository) Connection() *sql.DB { return repo.db }
-
 func (repo *PostgresqlRepository) GetExpenses() ([]models.Expense, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -220,4 +218,112 @@ func (repo *PostgresqlRepository) GetAllPayments() ([]models.Payment, error) {
 		return nil, fmt.Errorf("rows error: %w", err)
 	}
 	return payments, nil
+}
+
+func (repo *PostgresqlRepository) GetSumPayments() (int, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	query := `SELECT COALESCE(SUM(summ), 0) FROM payments`
+
+	var total int
+	err := repo.db.QueryRowContext(ctx, query).Scan(&total)
+	if err != nil {
+		return 0, fmt.Errorf("could not get sum payments: %w", err)
+	}
+	return total, nil
+}
+
+func (repo *PostgresqlRepository) GetSumExpenses() (int, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	query := `SELECT  COALESCE(sum(summ), 0) FROM expenses`
+	rows, err := repo.db.QueryContext(ctx, query)
+	if err != nil {
+		return 0, fmt.Errorf("could not get expenses: %w", err)
+	}
+	defer rows.Close()
+	var summExpense int
+	rows.Scan(&summExpense)
+	return summExpense, nil
+}
+
+func (repo *PostgresqlRepository) GetPupils() ([]models.Pupil, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	query := `SELECT id, name, surname, parent_name, parent_phone
+			  FROM pupils`
+	rows, err := repo.db.QueryContext(ctx, query)
+	if err != nil {
+		return nil, fmt.Errorf("could not get pupils: %w", err)
+	}
+	defer rows.Close()
+	var pupils []models.Pupil
+	for rows.Next() {
+		var pupil models.Pupil
+		if err := rows.Scan(
+			&pupil.ID,
+			&pupil.Name,
+			&pupil.Surname,
+			&pupil.ParentName,
+			&pupil.ParentPhone); err != nil {
+			return nil, fmt.Errorf("could not scan pupil row: %w", err)
+		}
+		pupils = append(pupils, pupil)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("rows error: %w", err)
+	}
+	return pupils, nil
+}
+
+func (repo *PostgresqlRepository) AddPupil(pupil *models.Pupil) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	query := `INSERT INTO pupils( name, surname, parent_name, parent_phone)
+			  VALUES($1, $2, $3, $4)`
+
+	_, err := repo.db.ExecContext(ctx, query,
+		pupil.Name,
+		pupil.Surname,
+		pupil.ParentName,
+		pupil.ParentPhone)
+	if err != nil {
+		return fmt.Errorf("cannot insert pupil: %w", err)
+	}
+	return nil
+}
+
+func (repo *PostgresqlRepository) UpdatePupil(pupil *models.Pupil) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	query := `UPDATE pupils
+			  SET name = $1, surname = $2, parent_name = $3, parent_phone = $4
+			  WHERE id = $5`
+	res, err := repo.db.ExecContext(ctx, query)
+	if err != nil {
+		return fmt.Errorf("cannot update pupil: %w", err)
+	}
+	aff, _ := res.RowsAffected()
+	if aff == 0 {
+		return sql.ErrNoRows
+	}
+	return nil
+}
+
+func (repo *PostgresqlRepository) DeletePupil(pupil *models.Pupil) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	query := `DELETE FROM pupils WHERE id = $1`
+	res, err := repo.db.ExecContext(ctx, query, pupil.ID)
+	if err != nil {
+		return fmt.Errorf("cannot delete pupil: %w", err)
+	}
+	aff, _ := res.RowsAffected()
+	if aff == 0 {
+		return sql.ErrNoRows
+	}
+	return nil
 }
