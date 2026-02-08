@@ -19,5 +19,9 @@ func Routes(h Handler) http.Handler {
 	mux.Post("/payments", h.AddPayment)
 	mux.Put("/payments", h.UpdatePayment)
 	mux.Delete("/payments", h.DeletePayment)
+	mux.Get("/pupils", h.GetPupils)
+	mux.Post("/pupils", h.AddPupil)
+	mux.Put("/pupils", h.UpdatePupil)
+	mux.Delete("/pupils", h.DeletePupil)
 	return mux
 }
