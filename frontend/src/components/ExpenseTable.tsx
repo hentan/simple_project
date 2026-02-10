@@ -2,8 +2,9 @@ import type { Expense } from "../types";
 
 type Props = {
   expenses: Expense[];
-  onEdit: (e: Expense) => void;
-  onDelete: (id: number) => void;
+  title?: string;
+  onEdit?: (e: Expense) => void;
+  onDelete?: (id: number) => void;
 };
 
 function formatDate(iso: string): string {
@@ -15,11 +16,12 @@ function formatDate(iso: string): string {
   return `${y}-${m}-${day}`;
 }
 
-export default function ExpenseTable({ expenses, onEdit, onDelete }: Props) {
+export default function ExpenseTable({ expenses, title = "Сданные деньги", onEdit, onDelete }: Props) {
+  const canEdit = typeof onEdit === "function" && typeof onDelete === "function";
   return (
     <section className="card">
       <div className="cardHeader">
-        <h2 className="h2">Расходы</h2>
+        <h2 className="h2">{title}</h2>
         <div className="muted">Всего: {expenses.length}</div>
       </div>
 
@@ -29,11 +31,11 @@ export default function ExpenseTable({ expenses, onEdit, onDelete }: Props) {
             <tr>
               <th>ID</th>
               <th>Дата</th>
-              <th>Подарок для</th>
+              <th>Назначение</th>
               <th>Pupil ID</th>
               <th>Фамилия</th>
               <th>Сумма</th>
-              <th />
+              {canEdit ? <th /> : null}
             </tr>
           </thead>
           <tbody>
@@ -45,19 +47,21 @@ export default function ExpenseTable({ expenses, onEdit, onDelete }: Props) {
                 <td className="mono">{e.pupil_id}</td>
                 <td>{e.surname}</td>
                 <td className="mono">{e.summ}</td>
-                <td className="rowActions">
-                  <button className="btn btnSmall btnSecondary" onClick={() => onEdit(e)}>
-                    Редактировать
-                  </button>
-                  <button className="btn btnSmall btnDanger" onClick={() => onDelete(e.id)}>
-                    Удалить
-                  </button>
-                </td>
+                {canEdit ? (
+                  <td className="rowActions">
+                    <button className="btn btnSmall btnSecondary" onClick={() => onEdit!(e)}>
+                      Редактировать
+                    </button>
+                    <button className="btn btnSmall btnDanger" onClick={() => onDelete!(e.id)}>
+                      Удалить
+                    </button>
+                  </td>
+                ) : null}
               </tr>
             ))}
             {expenses.length === 0 ? (
               <tr>
-                <td colSpan={7} className="empty">
+                <td colSpan={canEdit ? 7 : 6} className="empty">
                   Нет данных.
                 </td>
               </tr>

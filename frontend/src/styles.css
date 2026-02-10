@@ -20,6 +20,49 @@ code, .mono {
   padding: 24px 16px 40px;
 }
 
+.topNav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.brand {
+  font-weight: 800;
+  letter-spacing: 0.2px;
+  text-decoration: none;
+  color: #0f172a;
+  font-size: 16px;
+}
+
+.nav {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.navLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  text-decoration: none;
+  font-size: 13px;
+  color: #0f172a;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+}
+
+.navLink:hover { opacity: 0.95; }
+
+.navLinkActive {
+  border-color: #0f172a;
+  box-shadow: 0 1px 1px rgba(15, 23, 42, 0.06);
+}
+
 .header {
   display: flex;
   gap: 16px;
@@ -44,6 +87,13 @@ code, .mono {
 .kpiLabel { font-size: 12px; color: #64748b; margin-bottom: 4px; }
 .kpiValue { font-size: 18px; font-weight: 650; }
 
+.kpiRow {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
 .grid {
   display: grid;
   grid-template-columns: 360px 1fr;
@@ -59,6 +109,32 @@ code, .mono {
   border-radius: 12px;
   padding: 14px;
   box-shadow: 0 1px 1px rgba(15, 23, 42, 0.04);
+}
+
+.menuGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+@media (max-width: 920px) {
+  .menuGrid { grid-template-columns: 1fr; }
+}
+
+.menuCard {
+  display: block;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 14px;
+  text-decoration: none;
+  background: #ffffff;
+  color: inherit;
+  box-shadow: 0 1px 1px rgba(15, 23, 42, 0.04);
+}
+.menuCard:hover { opacity: 0.97; }
+
+.menuTitle {
+  font-weight: 700;
+  margin-bottom: 4px;
 }
 
 .cardHeader {

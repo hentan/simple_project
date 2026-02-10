@@ -1,17 +1,15 @@
-import React, { useEffect, useMemo, useState } from "react";
-import type { Expense } from "../types";
-import type { ExpenseInput } from "../api";
+import { useEffect, useMemo, useState } from "react";
+import type { Payment } from "../types";
+import type { PaymentInput } from "../api";
 
 type Props = {
-  editing?: Expense | null;
-  onCreate: (payload: ExpenseInput) => Promise<void>;
-  onUpdate: (payload: ExpenseInput & { id: number }) => Promise<void>;
+  editing?: Payment | null;
+  onCreate: (payload: PaymentInput) => Promise<void>;
+  onUpdate: (payload: PaymentInput & { id: number }) => Promise<void>;
   onCancelEdit: () => void;
 };
 
 function isoFromDateInput(value: string): string {
-  // Keep a stable "date-only" representation without timezone surprises:
-  // send midnight UTC for the chosen day.
   return new Date(`${value}T00:00:00Z`).toISOString();
 }
 
@@ -23,7 +21,7 @@ function dateInputFromIso(iso: string): string {
   return `${y}-${m}-${day}`;
 }
 
-export default function ExpenseForm({ editing, onCreate, onUpdate, onCancelEdit }: Props) {
+export default function PaymentForm({ editing, onCreate, onUpdate, onCancelEdit }: Props) {
   const isEdit = !!editing;
 
   const initialDate = useMemo(() => {
@@ -41,7 +39,7 @@ export default function ExpenseForm({ editing, onCreate, onUpdate, onCancelEdit 
   useEffect(() => {
     if (editing) {
       setDate(initialDate);
-      setGiftFor(editing.gift_for ?? "");
+      setGiftFor((editing as any)?.gift_for ? String((editing as any).gift_for) : "");
       setPupilId(String(editing.pupil_id ?? ""));
       setSumm(String(editing.summ ?? ""));
       setError(null);
@@ -59,17 +57,16 @@ export default function ExpenseForm({ editing, onCreate, onUpdate, onCancelEdit 
     setError(null);
 
     if (!date) return setError("Укажите дату.");
-    if (!giftFor.trim()) return setError("Укажите назначение (gift_for).");
     const pid = Number(pupilId);
     if (!Number.isFinite(pid) || pid <= 0) return setError("pupil_id должен быть положительным числом.");
     const s = Number(summ);
     if (!Number.isFinite(s) || s < 0) return setError("summ должен быть числом (>= 0).");
 
-    const payload: ExpenseInput = {
+    const payload: PaymentInput = {
       date: isoFromDateInput(date),
-      gift_for: giftFor.trim(),
       pupil_id: pid,
-      summ: s
+      summ: s,
+      gift_for: giftFor.trim() || undefined
     };
 
     try {
@@ -78,8 +75,6 @@ export default function ExpenseForm({ editing, onCreate, onUpdate, onCancelEdit 
         await onUpdate({ ...payload, id: editing.id });
       } else {
         await onCreate(payload);
-      }
-      if (!isEdit) {
         setDate("");
         setGiftFor("");
         setPupilId("");
@@ -95,7 +90,7 @@ export default function ExpenseForm({ editing, onCreate, onUpdate, onCancelEdit 
   return (
     <section className="card">
       <div className="cardHeader">
-        <h2 className="h2">{isEdit ? `Редактирование записи #${editing?.id}` : "Добавить сдачу"}</h2>
+        <h2 className="h2">{isEdit ? `Редактирование оплаты #${editing?.id}` : "Добавить оплату"}</h2>
         {isEdit ? (
           <button type="button" className="btn btnSecondary" onClick={onCancelEdit} disabled={submitting}>
             Отменить
@@ -110,8 +105,8 @@ export default function ExpenseForm({ editing, onCreate, onUpdate, onCancelEdit 
         </label>
 
         <label className="field">
-          <span className="label">Назначение</span>
-          <input value={giftFor} onChange={(e) => setGiftFor(e.target.value)} placeholder="Например: Новый год" />
+          <span className="label">Назначение (опционально)</span>
+          <input value={giftFor} onChange={(e) => setGiftFor(e.target.value)} placeholder="Например: занятие / подарок" />
         </label>
 
         <label className="field">
@@ -130,7 +125,7 @@ export default function ExpenseForm({ editing, onCreate, onUpdate, onCancelEdit 
           </button>
           {error ? <div className="error">{error}</div> : null}
           <div className="hint">
-            API: <code>/expenses</code> (GET/POST/PUT/DELETE), проксируется через <code>/api</code>.
+            API: <code>/payments</code> (GET/POST/PUT/DELETE).
           </div>
         </div>
       </form>

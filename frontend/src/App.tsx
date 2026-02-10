@@ -1,89 +1,93 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import type { Expense } from "./types";
-import { addExpense, deleteExpense, getExpenses, updateExpense, type ExpenseInput } from "./api";
-import ExpenseForm from "./components/ExpenseForm";
-import ExpenseTable from "./components/ExpenseTable";
+import { useEffect, useMemo, useState } from "react";
+import Home, { type HomeLink } from "./pages/Home";
+import Money from "./pages/Money";
+import Payments from "./pages/Payments";
+import Pupils from "./pages/Pupils";
+
+type RouteKey = "" | "money" | "pupils" | "payments";
+
+function normalizeHashToRoute(hash: string): RouteKey {
+  const raw = hash.replace(/^#\/?/, "").trim();
+  if (raw === "money") return "money";
+  if (raw === "pupils") return "pupils";
+  if (raw === "payments") return "payments";
+  return "";
+}
+
+function linkClass(isActive: boolean): string {
+  return `navLink${isActive ? " navLinkActive" : ""}`;
+}
 
 export default function App() {
-  const [expenses, setExpenses] = useState<Expense[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [editing, setEditing] = useState<Expense | null>(null);
-
-  const total = useMemo(() => expenses.reduce((acc, x) => acc + (x.summ ?? 0), 0), [expenses]);
-
-  const refresh = useCallback(async () => {
-    setError(null);
-    setLoading(true);
-    try {
-      const data = await getExpenses();
-      setExpenses(data);
-    } catch (err: any) {
-      setError(err?.message ?? "Ошибка загрузки");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const [route, setRoute] = useState<RouteKey>(() => normalizeHashToRoute(window.location.hash));
 
   useEffect(() => {
-    refresh();
-  }, [refresh]);
+    const onHashChange = () => setRoute(normalizeHashToRoute(window.location.hash));
+    window.addEventListener("hashchange", onHashChange);
+    return () => window.removeEventListener("hashchange", onHashChange);
+  }, []);
 
-  const handleCreate = useCallback(async (payload: ExpenseInput) => {
-    await addExpense(payload);
-    await refresh();
-  }, [refresh]);
+  const links: HomeLink[] = useMemo(() => (
+    [
+      {
+        title: "Сданные деньги",
+        description: "Учёт поступлений (то, что сдали).",
+        href: "#/money"
+      },
+      {
+        title: "Ученики",
+        description: "Справочник учеников.",
+        href: "#/pupils"
+      },
+      {
+        title: "Оплаты",
+        description: "Оплаты + расчёт ExpenseWithBalance.",
+        href: "#/payments"
+      }
+    ]
+  ), []);
 
-  const handleUpdate = useCallback(async (payload: ExpenseInput & { id: number }) => {
-    await updateExpense(payload);
-    setEditing(null);
-    await refresh();
-  }, [refresh]);
-
-  const handleDelete = useCallback(async (id: number) => {
-    const ok = window.confirm(`Удалить расход #${id}?`);
-    if (!ok) return;
-    try {
-      await deleteExpense(id);
-      if (editing?.id === id) setEditing(null);
-      await refresh();
-    } catch (err: any) {
-      alert(err?.message ?? "Ошибка удаления");
+  const content = useMemo(() => {
+    switch (route) {
+      case "money":
+        return <Money />;
+      case "pupils":
+        return <Pupils />;
+      case "payments":
+        return <Payments />;
+      default:
+        return <Home links={links} />;
     }
-  }, [refresh, editing]);
+  }, [route, links]);
 
   return (
     <div className="page">
-      <header className="header">
-        <div>
-          <h1 className="h1">Учёт расходов</h1>
-          <div className="muted">
-            SPA (React + Vite) в Docker. Встроенный Nginx проксирует <code>/api/*</code> на бэкенд, чтобы не требовать CORS.
-          </div>
+      <div className="topNav">
+        <a href="#/" className="brand">
+          Учёт
+        </a>
+        <div className="nav">
+          <a className={linkClass(route === "")} href="#/">
+            Главная
+          </a>
+          <a className={linkClass(route === "money")} href="#/money">
+            Сданные деньги
+          </a>
+          <a className={linkClass(route === "pupils")} href="#/pupils">
+            Ученики
+          </a>
+          <a className={linkClass(route === "payments")} href="#/payments">
+            Оплаты
+          </a>
         </div>
-        <div className="kpi">
-          <div className="kpiLabel">Сумма</div>
-          <div className="kpiValue mono">{total}</div>
-        </div>
-      </header>
+      </div>
 
-      <main className="grid">
-        <ExpenseForm
-          editing={editing}
-          onCreate={handleCreate}
-          onUpdate={handleUpdate}
-          onCancelEdit={() => setEditing(null)}
-        />
-
-        <section>
-          {error ? <div className="error">Ошибка: {error}</div> : null}
-          {loading ? <div className="muted">Загрузка...</div> : null}
-          <ExpenseTable expenses={expenses} onEdit={setEditing} onDelete={handleDelete} />
-        </section>
-      </main>
+      {content}
 
       <footer className="footer">
         <div className="muted">
+          SPA (React + Vite) в Docker. Встроенный Nginx проксирует <code>/api/*</code> на бэкенд, чтобы не требовать CORS.
+          <br />
           Чтобы изменить базовый путь API без прокси, установите <code>VITE_API_BASE</code> (например, <code>http://localhost:8080</code>) и включите CORS на бэкенде.
         </div>
       </footer>
