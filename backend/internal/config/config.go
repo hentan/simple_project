@@ -12,8 +12,8 @@ const (
 	envVarDbHost     = "POSTGRES_HOST"
 	envVarDbPort     = "POSTGRES_PORT"
 	envVarDbUser     = "POSTGRES_USER"
-	envVarDbPassword = "POSTGRES_Password"
-	envVarDbName     = "POSTGRES_NAME"
+	envVarDbPassword = "POSTGRES_PASSWORD"
+	envVarDbName     = "POSTGRES_DB"
 )
 
 type Postgresql struct {

@@ -156,7 +156,7 @@ func (repo *PostgresqlRepository) AddPayment(payment *models.Payment) error {
 	defer cancel()
 
 	query := `INSERT INTO payments(pupil_id, summ) VALUES ($1, $2)`
-	_, err := repo.db.ExecContext(ctx, query, payment.PupilID, payment.Summ)
+	_, err := repo.db.ExecContext(ctx, query, payment.PupilId, payment.Summ)
 	if err != nil {
 		return fmt.Errorf("cannot insert payment: %w", err)
 	}
@@ -168,7 +168,7 @@ func (repo *PostgresqlRepository) UpdatePayment(payment *models.Payment) error {
 	defer cancel()
 
 	query := `UPDATE payments SET pupil_id = $1, summ = $2 WHERE id = $3`
-	res, err := repo.db.ExecContext(ctx, query, payment.PupilID, payment.Summ, payment.Id)
+	res, err := repo.db.ExecContext(ctx, query, payment.PupilId, payment.Summ, payment.Id)
 	if err != nil {
 		return fmt.Errorf("cannot update payment: %w", err)
 	}
@@ -209,7 +209,7 @@ func (repo *PostgresqlRepository) GetAllPayments() ([]models.Payment, error) {
 	var payments []models.Payment
 	for rows.Next() {
 		var p models.Payment
-		if err := rows.Scan(&p.Id, &p.PupilID, &p.Summ); err != nil {
+		if err := rows.Scan(&p.Id, &p.PupilId, &p.Summ); err != nil {
 			return nil, fmt.Errorf("could not scan payment row: %w", err)
 		}
 		payments = append(payments, p)
@@ -237,15 +237,14 @@ func (repo *PostgresqlRepository) GetSumPayments() (int, error) {
 func (repo *PostgresqlRepository) GetSumExpenses() (int, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	query := `SELECT  COALESCE(sum(summ), 0) FROM expenses`
-	rows, err := repo.db.QueryContext(ctx, query)
-	if err != nil {
-		return 0, fmt.Errorf("could not get expenses: %w", err)
+
+	query := `SELECT COALESCE(SUM(summ), 0) FROM expenses`
+
+	var total int
+	if err := repo.db.QueryRowContext(ctx, query).Scan(&total); err != nil {
+		return 0, fmt.Errorf("could not get sum expenses: %w", err)
 	}
-	defer rows.Close()
-	var summExpense int
-	rows.Scan(&summExpense)
-	return summExpense, nil
+	return total, nil
 }
 
 func (repo *PostgresqlRepository) GetPupils() ([]models.Pupil, error) {
@@ -302,7 +301,7 @@ func (repo *PostgresqlRepository) UpdatePupil(pupil *models.Pupil) error {
 	query := `UPDATE pupils
 			  SET name = $1, surname = $2, parent_name = $3, parent_phone = $4
 			  WHERE id = $5`
-	res, err := repo.db.ExecContext(ctx, query)
+	res, err := repo.db.ExecContext(ctx, query, pupil.Name, pupil.Surname, pupil.ParentName, pupil.ParentPhone, pupil.ID)
 	if err != nil {
 		return fmt.Errorf("cannot update pupil: %w", err)
 	}

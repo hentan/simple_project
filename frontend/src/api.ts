@@ -40,7 +40,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 function normalizeExpenseWithBalance(raw: any): { expenses: Expense[]; balance: number } {
   // При отсутствии json-тегов Go сериализует как {"Expense": [...], "Balance": 123}
   // С тегами может быть {"expense": [...], "balance": 123}
-  const expenses = (raw?.expense ?? raw?.Expense ?? []) as Expense[];
+  const expenses = (raw?.expenses ?? raw?.Expenses ?? raw?.expense ?? raw?.Expense ?? []) as Expense[];
   const balance = Number(raw?.balance ?? raw?.Balance ?? 0);
   return { expenses: Array.isArray(expenses) ? expenses : [], balance: Number.isFinite(balance) ? balance : 0 };
 }
@@ -89,10 +89,20 @@ export async function deleteExpense(id: number): Promise<void> {
 
 // --- Pupils ---
 
+function normalizePupil(raw: any): Pupil {
+  // Поддержка старых ответов Go без json-тегов: ID/Name/Surname
+  const id = Number(raw?.id ?? raw?.ID ?? raw?.Id ?? 0);
+  const surname = String(raw?.surname ?? raw?.Surname ?? "");
+  const nameRaw = raw?.name ?? raw?.Name;
+  const name = typeof nameRaw === "string" ? nameRaw : undefined;
+  return { id, surname, name } as Pupil;
+}
+
 export async function getPupils(): Promise<Pupil[]> {
   const raw = await request<any>("/pupils", { method: "GET" });
   // Go может сериализовать nil-slice как null
-  return Array.isArray(raw) ? (raw as Pupil[]) : [];
+  const arr = Array.isArray(raw) ? raw : [];
+  return arr.map(normalizePupil).filter((p) => Number.isFinite(p.id) && p.id > 0);
 }
 
 export type PupilInput = {

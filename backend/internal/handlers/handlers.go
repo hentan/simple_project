@@ -60,8 +60,8 @@ func (app *Application) GetExpenses(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	expenseWithBalance := models.ExpenseWithBalance{
-		Expense: expenses,
-		Balance: balance,
+		Expenses: expenses,
+		Balance:  balance,
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)

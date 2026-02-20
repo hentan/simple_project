@@ -6,8 +6,10 @@ type Props = {
   onDelete: (id: number) => void;
 };
 
-function formatDate(iso: string): string {
+function formatDate(iso?: string): string {
+  if (!iso) return "";
   const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
   const y = d.getUTCFullYear();
   const m = String(d.getUTCMonth() + 1).padStart(2, "0");
   const day = String(d.getUTCDate()).padStart(2, "0");

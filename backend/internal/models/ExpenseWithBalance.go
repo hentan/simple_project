@@ -1,6 +1,6 @@
 package models
 
 type ExpenseWithBalance struct {
-	Expense []Expense
-	Balance int
+	Expenses []Expense `json:"expenses"`
+	Balance  int       `json:"balance"`
 }

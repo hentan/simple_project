@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
-import type { Expense } from "../types";
-import type { ExpenseInput } from "../api";
+import type { Expense, Pupil } from "../types";
+import { getPupils, type ExpenseInput } from "../api";
 
 type Props = {
   editing?: Expense | null;
@@ -23,6 +23,21 @@ function dateInputFromIso(iso: string): string {
   return `${y}-${m}-${day}`;
 }
 
+function normalizePupil(raw: any): Pupil {
+  // Поддержка старых ответов Go без json-тегов: ID/Name/Surname
+  const id = Number(raw?.id ?? raw?.ID ?? raw?.Id ?? 0);
+  const surname = String(raw?.surname ?? raw?.Surname ?? "");
+  const nameRaw = raw?.name ?? raw?.Name;
+  const name = typeof nameRaw === "string" ? nameRaw : undefined;
+  return { id, surname, name } as Pupil;
+}
+
+function pupilLabel(p: Pupil): string {
+  const surname = (p.surname ?? "").trim();
+  const name = (typeof (p as any).name === "string" ? String((p as any).name) : "").trim();
+  return `${surname}${name ? " " + name : ""}`.trim();
+}
+
 export default function ExpenseForm({ editing, onCreate, onUpdate, onCancelEdit }: Props) {
   const isEdit = !!editing;
 
@@ -37,6 +52,40 @@ export default function ExpenseForm({ editing, onCreate, onUpdate, onCancelEdit 
   const [summ, setSumm] = useState<string>("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Справочник учеников для выпадающего списка
+  const [pupils, setPupils] = useState<Pupil[]>([]);
+  const [pupilsLoading, setPupilsLoading] = useState(false);
+  const [pupilsError, setPupilsError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      setPupilsError(null);
+      setPupilsLoading(true);
+      try {
+        const list = await getPupils();
+        const normalized = list
+          .map(normalizePupil)
+          .filter((p) => Number.isFinite(p.id) && p.id > 0 && String(p.surname ?? "").trim().length > 0)
+          .sort((a, b) =>
+            String(a.surname ?? "").localeCompare(String(b.surname ?? ""), "ru") ||
+            String((a as any).name ?? "").localeCompare(String((b as any).name ?? ""), "ru")
+          );
+        if (alive) setPupils(normalized);
+      } catch (err: any) {
+        if (alive) {
+          setPupils([]);
+          setPupilsError(err?.message ?? "Не удалось загрузить список учеников");
+        }
+      } finally {
+        if (alive) setPupilsLoading(false);
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (editing) {
@@ -61,9 +110,9 @@ export default function ExpenseForm({ editing, onCreate, onUpdate, onCancelEdit 
     if (!date) return setError("Укажите дату.");
     if (!giftFor.trim()) return setError("Укажите назначение (gift_for).");
     const pid = Number(pupilId);
-    if (!Number.isFinite(pid) || pid <= 0) return setError("pupil_id должен быть положительным числом.");
+    if (!Number.isFinite(pid) || pid <= 0) return setError("Выберите ученика (pupil_id)." );
     const s = Number(summ);
-    if (!Number.isFinite(s) || s < 0) return setError("summ должен быть числом (>= 0).");
+    if (!Number.isFinite(s) || s < 0) return setError("summ должен быть числом (>= 0)." );
 
     const payload: ExpenseInput = {
       date: isoFromDateInput(date),
@@ -92,6 +141,8 @@ export default function ExpenseForm({ editing, onCreate, onUpdate, onCancelEdit 
     }
   }
 
+  const selectedMissing = pupilId && !pupils.some((p) => String(p.id) === String(pupilId));
+
   return (
     <section className="card">
       <div className="cardHeader">
@@ -115,8 +166,24 @@ export default function ExpenseForm({ editing, onCreate, onUpdate, onCancelEdit 
         </label>
 
         <label className="field">
-          <span className="label">Pupil ID</span>
-          <input inputMode="numeric" value={pupilId} onChange={(e) => setPupilId(e.target.value)} placeholder="Например: 12" />
+          <span className="label">Ученик</span>
+          <select
+            value={pupilId}
+            onChange={(e) => setPupilId(e.target.value)}
+            disabled={pupilsLoading || submitting}
+          >
+            <option value="">— выберите ученика —</option>
+            {selectedMissing ? <option value={pupilId}>ID {pupilId} (нет в списке)</option> : null}
+            {pupils.map((p) => (
+              <option key={p.id} value={p.id}>
+                {pupilLabel(p)}
+              </option>
+            ))}
+          </select>
+          {pupilsError ? <div className="hint error">{pupilsError}</div> : null}
+          {!pupilsError && pupils.length === 0 && !pupilsLoading ? (
+            <div className="hint">Сначала добавьте учеников в справочник (раздел «Ученики»).</div>
+          ) : null}
         </label>
 
         <label className="field">

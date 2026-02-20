@@ -1,9 +1,9 @@
 package models
 
 type Pupil struct {
-	ID          int    `db:"id"`
-	Name        string `db:"name"`
-	Surname     string `db:"surname"`
-	ParentName  string `db:"parent_name"`
-	ParentPhone string `db:"parent_phone"`
+	ID          int    `json:"id" db:"id"`
+	Name        string `json:"name" db:"name"`
+	Surname     string `json:"surname" db:"surname"`
+	ParentName  string `json:"parent_name" db:"parent_name"`
+	ParentPhone string `json:"parent_phone" db:"parent_phone"`
 }

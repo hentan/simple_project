@@ -13,19 +13,25 @@ export type Pupil = {
   name?: string;
 } & Record<string, unknown>;
 
+// Payments на бэкенде сейчас минимальные (id, pupil_id, summ).
+// Поля date/gift_for/surname оставляем опциональными, чтобы UI не падал,
+// если бэкенд их не отдает, и чтобы можно было расширить модель позже.
 export type Payment = {
   id: number;
-  date: string;
-  gift_for?: string;
   pupil_id: number;
   summ: number;
+  date?: string;
+  gift_for?: string;
   surname?: string;
 } & Record<string, unknown>;
 
 // Ответ бэкенда GET /expenses.
-// В Go это struct models.ExpenseWithBalance { Expense []Expense; Balance int }
-// (возможны json-теги, поэтому на клиенте нормализуем ключи).
+// Возможные варианты ключей зависят от json-тегов в Go.
 export type ExpenseWithBalanceResponse = {
-  expense: Expense[];
-  balance: number;
+  expenses?: Expense[];
+  Expenses?: Expense[];
+  expense?: Expense[];
+  Expense?: Expense[];
+  balance?: number;
+  Balance?: number;
 } & Record<string, unknown>;
