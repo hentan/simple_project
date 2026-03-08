@@ -16,21 +16,25 @@ export default function PupilTable({ pupils, onEdit, onDelete }: Props) {
 
       <div className="tableWrap">
         <table className="table">
-          <thead>
+            <thead>
             <tr>
-              <th>ID</th>
-              <th>Фамилия</th>
-              <th>Имя</th>
-              <th />
+                <th>ID</th>
+                <th>Фамилия</th>
+                <th>Имя</th>
+                <th>Родитель</th>
+                <th>Телефон родителя</th>
+                <th />
             </tr>
-          </thead>
+            </thead>
           <tbody>
             {pupils.map((p) => (
-              <tr key={p.id}>
-                <td className="mono">{p.id}</td>
-                <td>{p.surname}</td>
-                <td>{typeof (p as any).name === "string" ? String((p as any).name) : ""}</td>
-                <td className="rowActions">
+                <tr key={p.id}>
+                    <td className="mono">{p.id}</td>
+                    <td>{p.surname}</td>
+                    <td>{typeof (p as any).name === "string" ? String((p as any).name) : ""}</td>
+                    <td>{typeof (p as any).parent_name === "string" ? String((p as any).parent_name) : ""}</td>
+                    <td>{typeof (p as any).parent_phone === "string" ? String((p as any).parent_phone) : ""}</td>
+                    <td className="rowActions">
                   <button className="btn btnSmall btnSecondary" onClick={() => onEdit(p)}>
                     Редактировать
                   </button>
@@ -42,9 +46,9 @@ export default function PupilTable({ pupils, onEdit, onDelete }: Props) {
             ))}
             {pupils.length === 0 ? (
               <tr>
-                <td colSpan={4} className="empty">
-                  Нет данных.
-                </td>
+                  <td colSpan={6} className="empty">
+                      Нет данных.
+                  </td>
               </tr>
             ) : null}
           </tbody>

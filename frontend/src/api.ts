@@ -90,12 +90,25 @@ export async function deleteExpense(id: number): Promise<void> {
 // --- Pupils ---
 
 function normalizePupil(raw: any): Pupil {
-  // Поддержка старых ответов Go без json-тегов: ID/Name/Surname
-  const id = Number(raw?.id ?? raw?.ID ?? raw?.Id ?? 0);
-  const surname = String(raw?.surname ?? raw?.Surname ?? "");
-  const nameRaw = raw?.name ?? raw?.Name;
-  const name = typeof nameRaw === "string" ? nameRaw : undefined;
-  return { id, surname, name } as Pupil;
+    const id = Number(raw?.id ?? raw?.ID ?? raw?.Id ?? 0);
+    const surname = String(raw?.surname ?? raw?.Surname ?? "");
+
+    const nameRaw = raw?.name ?? raw?.Name;
+    const name = typeof nameRaw === "string" ? nameRaw : undefined;
+
+    const parentNameRaw = raw?.parent_name ?? raw?.parentName ?? raw?.ParentName;
+    const parent_name = typeof parentNameRaw === "string" ? parentNameRaw : undefined;
+
+    const parentPhoneRaw = raw?.parent_phone ?? raw?.parentPhone ?? raw?.ParentPhone;
+    const parent_phone = typeof parentPhoneRaw === "string" ? parentPhoneRaw : undefined;
+
+    return {
+        id,
+        surname,
+        name,
+        parent_name,
+        parent_phone
+    } as Pupil;
 }
 
 export async function getPupils(): Promise<Pupil[]> {
@@ -106,9 +119,11 @@ export async function getPupils(): Promise<Pupil[]> {
 }
 
 export type PupilInput = {
-  id?: number;
-  surname: string;
-  name?: string;
+    id?: number;
+    surname: string;
+    name?: string;
+    parent_name?: string;
+    parent_phone?: string;
 };
 
 export async function addPupil(payload: PupilInput): Promise<void> {

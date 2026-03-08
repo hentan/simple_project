@@ -8,9 +8,11 @@ export type Expense = {
 };
 
 export type Pupil = {
-  id: number;
-  surname: string;
-  name?: string;
+    id: number;
+    surname: string;
+    name?: string;
+    parent_name?: string;
+    parent_phone?: string;
 } & Record<string, unknown>;
 
 // Payments на бэкенде сейчас минимальные (id, pupil_id, summ).

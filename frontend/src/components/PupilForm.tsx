@@ -18,22 +18,38 @@ export default function PupilForm({ editing, onCreate, onUpdate, onCancelEdit }:
     return typeof raw === "string" ? raw : "";
   }, [editing]);
 
+    const initialParentName = useMemo(() => {
+        const raw = (editing as any)?.parent_name;
+        return typeof raw === "string" ? raw : "";
+    }, [editing]);
+
+    const initialParentPhone = useMemo(() => {
+        const raw = (editing as any)?.parent_phone;
+        return typeof raw === "string" ? raw : "";
+    }, [editing]);
+
   const [surname, setSurname] = useState<string>("");
   const [name, setName] = useState<string>("");
+  const [parentName, setParentName] = useState<string>("");
+  const [parentPhone, setParentPhone] = useState<string>("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (editing) {
-      setSurname(initialSurname);
-      setName(initialName);
-      setError(null);
-    } else {
-      setSurname("");
-      setName("");
-      setError(null);
-    }
-  }, [editing, initialSurname, initialName]);
+    useEffect(() => {
+        if (editing) {
+            setSurname(initialSurname);
+            setName(initialName);
+            setParentName(initialParentName);
+            setParentPhone(initialParentPhone);
+            setError(null);
+        } else {
+            setSurname("");
+            setName("");
+            setParentName("");
+            setParentPhone("");
+            setError(null);
+        }
+    }, [editing, initialSurname, initialName, initialParentName, initialParentPhone]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -41,10 +57,12 @@ export default function PupilForm({ editing, onCreate, onUpdate, onCancelEdit }:
 
     if (!surname.trim()) return setError("Укажите фамилию.");
 
-    const payload: PupilInput = {
-      surname: surname.trim(),
-      name: name.trim() || undefined
-    };
+      const payload: PupilInput = {
+          surname: surname.trim(),
+          name: name.trim() || undefined,
+          parent_name: parentName.trim() || undefined,
+          parent_phone: parentPhone.trim() || undefined
+      };
 
     try {
       setSubmitting(true);
@@ -54,6 +72,8 @@ export default function PupilForm({ editing, onCreate, onUpdate, onCancelEdit }:
         await onCreate(payload);
         setSurname("");
         setName("");
+        setParentName("");
+        setParentPhone("");
       }
     } catch (err: any) {
       setError(err?.message ?? "Ошибка запроса");
@@ -82,6 +102,24 @@ export default function PupilForm({ editing, onCreate, onUpdate, onCancelEdit }:
         <label className="field">
           <span className="label">Имя (необязательно)</span>
           <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Например: Пётр" />
+        </label>
+
+        <label className="field">
+          <span className="label">Имя родителя (необязательно)</span>
+          <input
+              value={parentName}
+              onChange={(e) => setParentName(e.target.value)}
+              placeholder="Например: Мария Ивановна"
+          />
+        </label>
+
+        <label className="field">
+          <span className="label">Телефон родителя (необязательно)</span>
+          <input
+              value={parentPhone}
+              onChange={(e) => setParentPhone(e.target.value)}
+              placeholder="Например: +7 999 123-45-67"
+          />
         </label>
 
         <div className="actions">
