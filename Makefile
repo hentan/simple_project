@@ -11,7 +11,7 @@ up: up-be up-fe
 up-be:
 	$(COMPOSE_BE) up -d
 up-fe:
-	$(COMPOSE_FE) up -d
+	$(COMPOSE_FE) up --build -d
 
 down: down-fe down-be
 down-be:

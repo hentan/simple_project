@@ -1,10 +1,8 @@
-# ---------- build stage ----------
 FROM node:20-alpine AS build
 WORKDIR /app
 
-COPY package.json ./
-# For small demo projects, npm install is fine without lockfile
-RUN npm install
+COPY package.json package-lock.json ./
+RUN npm ci --verbose --no-audit --no-fund
 
 COPY . .
 RUN npm run build
