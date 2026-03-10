@@ -16,7 +16,10 @@ create table payments
 (
     id        serial,
     pupil_id  int,
-    summ      int
+    summ      int,
+    date      date,
+    surname   varchar(100),
+    purpose   varchar(500)
 );
 
 create table pupils
