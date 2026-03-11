@@ -1,6 +1,6 @@
 APP_SERVICE=app
 DB_SERVICE=postgres
-GOOSE=goose
+GOOSE := $(HOME)/go/bin/goose
 
 COMPOSE_BE=docker compose -f backend/docker-compose.yaml
 COMPOSE_FE=docker compose -f frontend/docker-compose.yaml
@@ -47,4 +47,8 @@ migrate-down:
 
 migrate-status:
 	$(COMPOSE_BE) exec $(APP_SERVICE) sh -c '$(GOOSE) -dir ./migrations postgres "$$DATABASE_DSN" status'
+
+migrate-create:
+	@test -n "$(name)" || (echo 'usage: make migrate-create name=create_users_table'; exit 1)
+	cd backend && $(GOOSE) -dir ./internal/migrations create $(name) sql
 

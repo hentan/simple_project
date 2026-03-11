@@ -1,1 +1,2 @@
 /frontend/node_modules/
+/backend/internal/migrations/20260311183407_add_info.sql
