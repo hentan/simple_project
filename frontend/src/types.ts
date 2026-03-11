@@ -19,12 +19,12 @@ export type Pupil = {
 // Поля date/gift_for/surname оставляем опциональными, чтобы UI не падал,
 // если бэкенд их не отдает, и чтобы можно было расширить модель позже.
 export type Payment = {
-  id: number;
-  pupil_id: number;
-  summ: number;
-  date?: string;
-  gift_for?: string;
-  surname?: string;
+    id: number;
+    pupil_id: number;
+    summ: number;
+    date?: string;
+    purpose?: string;
+    surname?: string;
 } & Record<string, unknown>;
 
 // Ответ бэкенда GET /expenses.

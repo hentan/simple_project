@@ -18,7 +18,6 @@ create table payments
     pupil_id  int,
     summ      int,
     date      date,
-    surname   varchar(100),
     purpose   varchar(500)
 );
 

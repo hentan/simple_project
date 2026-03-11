@@ -44,7 +44,7 @@ export default function PaymentForm({ editing, onCreate, onUpdate, onCancelEdit 
     }, [editing]);
 
     const [date, setDate] = useState<string>("");
-    const [giftFor, setGiftFor] = useState<string>("");
+    const [purpose, setPurpose] = useState<string>("");
     const [pupilId, setPupilId] = useState<string>("");
     const [summ, setSumm] = useState<string>("");
     const [submitting, setSubmitting] = useState(false);
@@ -90,13 +90,19 @@ export default function PaymentForm({ editing, onCreate, onUpdate, onCancelEdit 
     useEffect(() => {
         if (editing) {
             setDate(initialDate);
-            setGiftFor((editing as any)?.gift_for ? String((editing as any).gift_for) : "");
+            setPurpose(
+                typeof (editing as any)?.purpose === "string"
+                    ? String((editing as any).purpose)
+                    : typeof (editing as any)?.gift_for === "string"
+                        ? String((editing as any).gift_for)
+                        : ""
+            );
             setPupilId(String(editing.pupil_id ?? ""));
             setSumm(String(editing.summ ?? ""));
             setError(null);
         } else {
             setDate("");
-            setGiftFor("");
+            setPurpose("");
             setPupilId("");
             setSumm("");
             setError(null);
@@ -117,7 +123,7 @@ export default function PaymentForm({ editing, onCreate, onUpdate, onCancelEdit 
             date: isoFromDateInput(date),
             pupil_id: pid,
             summ: s,
-            gift_for: giftFor.trim() || undefined
+            purpose: purpose.trim() || undefined
         };
 
         try {
@@ -127,7 +133,7 @@ export default function PaymentForm({ editing, onCreate, onUpdate, onCancelEdit 
             } else {
                 await onCreate(payload);
                 setDate("");
-                setGiftFor("");
+                setPurpose("");
                 setPupilId("");
                 setSumm("");
             }
@@ -160,8 +166,8 @@ export default function PaymentForm({ editing, onCreate, onUpdate, onCancelEdit 
                 <label className="field">
                     <span className="label">Назначение (опционально)</span>
                     <input
-                        value={giftFor}
-                        onChange={(e) => setGiftFor(e.target.value)}
+                        value={purpose}
+                        onChange={(e) => setPurpose(e.target.value)}
                         placeholder="Например: занятие / подарок"
                     />
                 </label>

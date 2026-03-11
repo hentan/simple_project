@@ -154,8 +154,8 @@ func (repo *PostgresqlRepository) AddPayment(payment *models.Payment) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	query := `INSERT INTO payments(pupil_id, summ, date, surname, purpose) VALUES ($1, $2, $3, $4, $5)`
-	_, err := repo.db.ExecContext(ctx, query, payment.PupilId, payment.Summ, payment.Date, payment.Surname, payment.Purpose)
+	query := `INSERT INTO payments(pupil_id, summ, date, purpose) VALUES ($1, $2, $3, $4)`
+	_, err := repo.db.ExecContext(ctx, query, payment.PupilId, payment.Summ, payment.Date, payment.Purpose)
 	if err != nil {
 		return fmt.Errorf("cannot insert payment: %w", err)
 	}
@@ -166,9 +166,8 @@ func (repo *PostgresqlRepository) UpdatePayment(payment *models.Payment) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	query := `UPDATE payments SET pupil_id = $1, summ = $2, date = $3, surname = $4, purpose = $5 WHERE id = $6`
-	res, err := repo.db.ExecContext(ctx, query, payment.PupilId, payment.Summ, payment.Date,
-		payment.Surname, payment.Purpose, payment.Id)
+	query := `UPDATE payments SET pupil_id = $1, summ = $2, date = $3, purpose = $4 WHERE id = $5`
+	res, err := repo.db.ExecContext(ctx, query, payment.PupilId, payment.Summ, payment.Date, payment.Purpose, payment.Id)
 	if err != nil {
 		return fmt.Errorf("cannot update payment: %w", err)
 	}
@@ -199,7 +198,19 @@ func (repo *PostgresqlRepository) GetAllPayments() ([]models.Payment, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	query := `SELECT id, pupil_id, summ, date, surname, purpose FROM payments ORDER BY id`
+	query := `
+		SELECT
+			pay.id,
+			pay.date,
+			pay.purpose,
+			pay.pupil_id,
+			COALESCE(p.surname, '') AS surname,
+			pay.summ
+		FROM payments pay
+		LEFT JOIN pupils p ON p.id = pay.pupil_id
+		ORDER BY pay.id
+	`
+
 	rows, err := repo.db.QueryContext(ctx, query)
 	if err != nil {
 		return nil, fmt.Errorf("could not get payments: %w", err)
@@ -208,17 +219,18 @@ func (repo *PostgresqlRepository) GetAllPayments() ([]models.Payment, error) {
 
 	var payments []models.Payment
 	for rows.Next() {
-		var p models.Payment
+		var pmt models.Payment
 		if err := rows.Scan(
-			&p.Id,
-			&p.PupilId,
-			&p.Summ,
-			&p.Date,
-			&p.Surname,
-			&p.Purpose); err != nil {
+			&pmt.Id,
+			&pmt.Date,
+			&pmt.Purpose,
+			&pmt.PupilId,
+			&pmt.Surname,
+			&pmt.Summ,
+		); err != nil {
 			return nil, fmt.Errorf("could not scan payment row: %w", err)
 		}
-		payments = append(payments, p)
+		payments = append(payments, pmt)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, fmt.Errorf("rows error: %w", err)

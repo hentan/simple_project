@@ -148,17 +148,41 @@ export async function deletePupil(id: number): Promise<void> {
 }
 
 // --- Payments ---
+function normalizePayment(raw: any): Payment {
+  const id = Number(raw?.id ?? raw?.ID ?? raw?.Id ?? 0);
+  const pupil_id = Number(raw?.pupil_id ?? raw?.pupilId ?? raw?.PupilId ?? 0);
+  const summ = Number(raw?.summ ?? raw?.Summ ?? 0);
+
+  const dateRaw = raw?.date ?? raw?.Date;
+  const date = typeof dateRaw === "string" ? dateRaw : undefined;
+
+  const purposeRaw =
+      raw?.purpose ?? raw?.Purpose ?? raw?.gift_for ?? raw?.giftFor ?? raw?.GiftFor;
+  const purpose = typeof purposeRaw === "string" ? purposeRaw : undefined;
+
+  const surnameRaw = raw?.surname ?? raw?.Surname;
+  const surname = typeof surnameRaw === "string" ? surnameRaw : undefined;
+
+  return {
+    id,
+    pupil_id,
+    summ: Number.isFinite(summ) ? summ : 0,
+    date,
+    purpose,
+    surname
+  } as Payment;
+}
 
 export async function getPayments(): Promise<Payment[]> {
   const raw = await request<any>("/payments", { method: "GET" });
-  // Go может сериализовать nil-slice как null
-  return Array.isArray(raw) ? (raw as Payment[]) : [];
+  const arr = Array.isArray(raw) ? raw : [];
+  return arr.map(normalizePayment).filter((p) => Number.isFinite(p.id) && p.id > 0);
 }
 
 export type PaymentInput = {
   id?: number;
   date: string;
-  gift_for?: string;
+  purpose?: string;
   pupil_id: number;
   summ: number;
 };

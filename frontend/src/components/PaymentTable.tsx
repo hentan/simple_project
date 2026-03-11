@@ -42,7 +42,7 @@ export default function PaymentTable({ payments, onEdit, onDelete }: Props) {
               <tr key={p.id}>
                 <td className="mono">{p.id}</td>
                 <td className="mono">{formatDate(p.date)}</td>
-                <td>{typeof (p as any).gift_for === "string" ? String((p as any).gift_for) : ""}</td>
+                <td>{typeof (p as any).purpose === "string" ? String((p as any).purpose) : ""}</td>
                 <td className="mono">{p.pupil_id}</td>
                 <td>{typeof (p as any).surname === "string" ? String((p as any).surname) : ""}</td>
                 <td className="mono">{p.summ}</td>
