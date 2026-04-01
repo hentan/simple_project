@@ -5,7 +5,7 @@
 -- =========================
 create table expenses
 (
-    id        serial,
+    id        serial primary key,
     date      date,
     gift_for  varchar(500),
     pupil_id  int,
@@ -14,16 +14,16 @@ create table expenses
 
 create table payments
 (
-    id        serial,
+    id        serial primary key,
     pupil_id  int,
     summ      int,
-    date      date,
+    date      date default now(),
     purpose   varchar(500)
 );
 
 create table pupils
 (
-    id           serial,
+    id           serial primary key,
     name         varchar(100),
     surname      varchar(100),
     parent_name  varchar(100),
