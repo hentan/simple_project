@@ -1,7 +1,6 @@
 package config
 
 import (
-	"log"
 	"os"
 
 	"github.com/joho/godotenv"
@@ -30,10 +29,7 @@ type Config struct {
 }
 
 func NewConfig(path string) *Config {
-	err := godotenv.Load(path)
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
+	_ = godotenv.Load()
 
 	var db Postgresql = Postgresql{
 		Host:     getEnv(envVarDbHost, "postgres"),

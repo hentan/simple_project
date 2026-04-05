@@ -16,8 +16,13 @@ GOOSE_VERSION ?= v3.21.1
 GOOSE_BIN := $(CURDIR)/$(BACKEND_DIR)/bin/goose
 MIGRATIONS_DIR := $(CURDIR)/$(BACKEND_DIR)/internal/migrations
 
-# Загружаем переменные из backend/.env в shell команды
-RUN_ENV = set -a; [ -f "$(ENV_FILE)" ] && . "$(ENV_FILE)"; set +a;
+# Загружаем переменные из backend/.env в shell-команды.
+# Удаляем '\r' на лету, чтобы .env с Windows-окончаниями (CRLF) не ломал /bin/sh.
+RUN_ENV = \
+	tmp="$$(mktemp)"; \
+	trap 'rm -f "$$tmp"' EXIT INT TERM; \
+	tr -d '\r' < "$(ENV_FILE)" > "$$tmp"; \
+	set -a; . "$$tmp"; set +a;
 
 .PHONY: help \
 	up up-be up-fe \
