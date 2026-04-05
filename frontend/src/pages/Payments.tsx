@@ -31,7 +31,7 @@ export default function Payments() {
       const data = await getPayments();
       setPayments(data);
     } catch (err: any) {
-      setError(err?.message ?? "Ошибка загрузки оплат");
+      setError(err?.message ?? "Ошибка загрузки платежей");
     } finally {
       setLoading(false);
     }
@@ -63,7 +63,7 @@ export default function Payments() {
   }, [refresh]);
 
   const handleDelete = useCallback(async (id: number) => {
-    const ok = window.confirm(`Удалить оплату #${id}?`);
+    const ok = window.confirm(`Удалить платеж #${id}?`);
     if (!ok) return;
     try {
       await deletePayment(id);
@@ -78,14 +78,14 @@ export default function Payments() {
     <>
       <header className="header">
         <div>
-          <h1 className="h1">Оплаты</h1>
+          <h1 className="h1">Сданные деньги</h1>
           <div className="muted">
             Основная таблица: <code>/payments</code>. Ниже дополнительно выводится ответ <code>ExpenseWithBalance</code> из <code>/expenses</code>.
           </div>
         </div>
         <div className="kpiRow">
           <div className="kpi">
-            <div className="kpiLabel">Сумма оплат</div>
+            <div className="kpiLabel">Сумма платежей</div>
             <div className="kpiValue mono">{total}</div>
           </div>
           <div className="kpi">
@@ -110,7 +110,7 @@ export default function Payments() {
 
           {balanceError ? <div className="error" style={{ marginTop: 12 }}>Ошибка: {balanceError}</div> : null}
           <div style={{ marginTop: 12 }}>
-            <ExpenseTable title="ExpenseWithBalance: сданные деньги" expenses={expenses} />
+            <ExpenseTable title="ExpenseWithBalance: потраченные деньги" expenses={expenses} />
           </div>
         </section>
       </main>

@@ -16,7 +16,7 @@ function formatDate(iso: string): string {
   return `${y}-${m}-${day}`;
 }
 
-export default function ExpenseTable({ expenses, title = "Сданные деньги", onEdit, onDelete }: Props) {
+export default function ExpenseTable({ expenses, title = "Потраченные деньги", onEdit, onDelete }: Props) {
   const canEdit = typeof onEdit === "function" && typeof onDelete === "function";
   return (
     <section className="card">

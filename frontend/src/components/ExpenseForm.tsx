@@ -146,7 +146,7 @@ export default function ExpenseForm({ editing, onCreate, onUpdate, onCancelEdit 
   return (
     <section className="card">
       <div className="cardHeader">
-        <h2 className="h2">{isEdit ? `Редактирование записи #${editing?.id}` : "Добавить сдачу"}</h2>
+        <h2 className="h2">{isEdit ? `Редактирование записи #${editing?.id}` : "Добавить оплату"}</h2>
         {isEdit ? (
           <button type="button" className="btn btnSecondary" onClick={onCancelEdit} disabled={submitting}>
             Отменить

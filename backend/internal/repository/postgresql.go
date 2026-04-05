@@ -56,7 +56,7 @@ func (repo *PostgresqlRepository) GetExpenses() ([]models.Expense, error) {
 		SELECT e.id, e.date, e.gift_for, e.pupil_id, p.surname, e.summ
 		FROM expenses e
 		INNER JOIN pupils p ON p.id = e.pupil_id
-		ORDER BY p.surname
+		ORDER BY e.date DESC
 	`
 
 	rows, err := repo.db.QueryContext(ctx, query)
@@ -208,7 +208,7 @@ func (repo *PostgresqlRepository) GetAllPayments() ([]models.Payment, error) {
 			pay.summ
 		FROM payments pay
 		LEFT JOIN pupils p ON p.id = pay.pupil_id
-		ORDER BY pay.id
+		ORDER BY p.surname
 	`
 
 	rows, err := repo.db.QueryContext(ctx, query)
@@ -269,7 +269,8 @@ func (repo *PostgresqlRepository) GetPupils() ([]models.Pupil, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	query := `SELECT id, name, surname, parent_name, parent_phone
-			  FROM pupils`
+			  FROM pupils
+			  ORDER BY surname`
 	rows, err := repo.db.QueryContext(ctx, query)
 	if err != nil {
 		return nil, fmt.Errorf("could not get pupils: %w", err)

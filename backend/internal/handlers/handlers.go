@@ -199,7 +199,7 @@ func (app *Application) GetBalance() (int, error) {
 		return 0, fmt.Errorf("get sum payments: %w", err)
 	}
 
-	summBalance := sumExpenses - sumPayments
+	summBalance := sumPayments - sumExpenses
 	return summBalance, nil
 }
 

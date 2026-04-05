@@ -20,7 +20,7 @@ export default function PaymentTable({ payments, onEdit, onDelete }: Props) {
   return (
     <section className="card">
       <div className="cardHeader">
-        <h2 className="h2">Оплаты</h2>
+        <h2 className="h2">Сданные деньги</h2>
         <div className="muted">Всего: {payments.length}</div>
       </div>
 

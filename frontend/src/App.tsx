@@ -40,8 +40,8 @@ export default function App() {
         href: "#/pupils"
       },
       {
-        title: "Оплаты",
-        description: "Оплаты + расчёт ExpenseWithBalance.",
+        title: "Потраченные деньги",
+        description: "Сданные деньги + расчёт потраченные",
         href: "#/payments"
       }
     ]
@@ -71,13 +71,13 @@ export default function App() {
             Главная
           </a>
           <a className={linkClass(route === "money")} href="#/money">
-            Сданные деньги
+            Оплаты
           </a>
           <a className={linkClass(route === "pupils")} href="#/pupils">
             Ученики
           </a>
           <a className={linkClass(route === "payments")} href="#/payments">
-            Оплаты
+            Сданные деньги
           </a>
         </div>
       </div>

@@ -8,7 +8,7 @@ type Props = {
   title?: string;
 };
 
-export default function Money({ title = "Сданные деньги" }: Props) {
+export default function Money({ title = "Потраченные деньги" }: Props) {
   const [items, setItems] = useState<Expense[]>([]);
   const [balance, setBalance] = useState<number>(0);
   const [loading, setLoading] = useState(false);
@@ -70,7 +70,7 @@ export default function Money({ title = "Сданные деньги" }: Props) 
         </div>
         <div className="kpiRow">
           <div className="kpi">
-            <div className="kpiLabel">Итого (сдано)</div>
+            <div className="kpiLabel">Итого (потрачено)</div>
             <div className="kpiValue mono">{total}</div>
           </div>
           <div className="kpi">
