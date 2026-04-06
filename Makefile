@@ -74,7 +74,7 @@ up-fe:
 down: down-fe down-be
 
 down-be:
-	$(COMPOSE_BE) down -v
+	$(COMPOSE_BE) down
 
 down-fe:
 	$(COMPOSE_FE) down -v
