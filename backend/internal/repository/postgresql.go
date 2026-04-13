@@ -4,48 +4,63 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"log"
 	"simple_project/internal/config"
 	"simple_project/internal/models"
 	"time"
 
 	_ "github.com/jackc/pgconn"
-	_ "github.com/jackc/pgx/v4"
-	_ "github.com/jackc/pgx/v4/stdlib"
+	_ "github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
+	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
 type PostgresqlRepository struct {
-	db *sql.DB
+	pool *pgxpool.Pool
 }
 
-func (repo *PostgresqlRepository) Connect() *sql.DB {
-	return repo.db
+func New(pool *pgxpool.Pool) *PostgresqlRepository {
+	return &PostgresqlRepository{pool: pool}
 }
 
-func New(cfg config.Postgresql) *PostgresqlRepository {
-	connString := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable",
-		cfg.Username, cfg.Password, cfg.Host, cfg.Port, cfg.Database)
-	fmt.Println(connString)
-	db, err := connectToDB(connString)
+func NewPool(ctx context.Context, cfg config.Postgresql) (*pgxpool.Pool, error) {
+	dsn := fmt.Sprintf(
+		"postgres://%s:%s@%s:%d/%s?sslmode=disable",
+		cfg.Username,
+		cfg.Password,
+		cfg.Host,
+		cfg.Port,
+		cfg.Database,
+	)
+
+	pc, err := pgxpool.ParseConfig(dsn)
 	if err != nil {
-		log.Fatal(fmt.Errorf("error connecting to database: %w", err))
+		return nil, fmt.Errorf("failed to parse postgresql dsn: %w", err)
 	}
 
-	fmt.Println("Successfully connected to database")
+	pc.MaxConns = 20
+	pc.MinConns = 2
+	pc.MaxConnLifetime = 30 * time.Minute
+	pc.MaxConnIdleTime = 5 * time.Minute
+	pc.HealthCheckPeriod = 1 * time.Minute
 
-	return &PostgresqlRepository{db: db}
+	pool, err := pgxpool.NewWithConfig(ctx, pc)
+	if err != nil {
+		return nil, fmt.Errorf("failed to connect to postgresql database: %w", err)
+	}
+
+	pingCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	if err = pool.Ping(pingCtx); err != nil {
+		pool.Close()
+		return nil, fmt.Errorf("failed to ping postgresql database: %w", err)
+	}
+
+	return pool, nil
 }
 
-func connectToDB(dsn string) (*sql.DB, error) {
-	db, err := sql.Open("pgx", dsn)
-	if err != nil {
-		return nil, fmt.Errorf("error connecting to database: %w", err)
-	}
-	if err := db.Ping(); err != nil {
-		return nil, err
-	}
-	fmt.Println("успешное подключение к БД!")
-	return db, nil
+func (repo *PostgresqlRepository) Close() {
+	repo.pool.Close()
 }
 
 func (repo *PostgresqlRepository) GetExpenses() ([]models.Expense, error) {
@@ -59,7 +74,7 @@ func (repo *PostgresqlRepository) GetExpenses() ([]models.Expense, error) {
 		ORDER BY e.date DESC
 	`
 
-	rows, err := repo.db.QueryContext(ctx, query)
+	rows, err := repo.pool.Query(ctx, query)
 	if err != nil {
 		return nil, fmt.Errorf("could not get expenses: %w", err)
 	}
@@ -95,7 +110,7 @@ func (repo *PostgresqlRepository) AddExpense(expense *models.Expense) error {
 		VALUES ($1, $2, $3, $4)
 	`
 
-	_, err := repo.db.ExecContext(ctx, query,
+	_, err := repo.pool.Exec(ctx, query,
 		expense.Date,
 		expense.GiftFor,
 		expense.PupilId,
@@ -117,7 +132,7 @@ func (repo *PostgresqlRepository) UpdateExpense(expense *models.Expense) error {
 		WHERE id = $5
 	`
 
-	res, err := repo.db.ExecContext(ctx, query,
+	res, err := repo.pool.Exec(ctx, query,
 		expense.Date,
 		expense.GiftFor,
 		expense.PupilId,
@@ -127,7 +142,7 @@ func (repo *PostgresqlRepository) UpdateExpense(expense *models.Expense) error {
 	if err != nil {
 		return fmt.Errorf("cannot update expense: %w", err)
 	}
-	aff, _ := res.RowsAffected()
+	aff := res.RowsAffected()
 	if aff == 0 { // FIX: полезно явно сигнализировать “ничего не обновилось”
 		return sql.ErrNoRows
 	}
@@ -139,11 +154,11 @@ func (repo *PostgresqlRepository) DeleteExpense(expense *models.Expense) error {
 	defer cancel()
 
 	query := `DELETE FROM expenses WHERE id = $1`
-	res, err := repo.db.ExecContext(ctx, query, expense.Id)
+	res, err := repo.pool.Exec(ctx, query, expense.Id)
 	if err != nil {
 		return fmt.Errorf("cannot delete expense: %w", err)
 	}
-	aff, _ := res.RowsAffected()
+	aff := res.RowsAffected()
 	if aff == 0 {
 		return sql.ErrNoRows
 	}
@@ -155,7 +170,7 @@ func (repo *PostgresqlRepository) AddPayment(payment *models.Payment) error {
 	defer cancel()
 
 	query := `INSERT INTO payments(pupil_id, summ, date, purpose) VALUES ($1, $2, $3, $4)`
-	_, err := repo.db.ExecContext(ctx, query, payment.PupilId, payment.Summ, payment.Date, payment.Purpose)
+	_, err := repo.pool.Exec(ctx, query, payment.PupilId, payment.Summ, payment.Date, payment.Purpose)
 	if err != nil {
 		return fmt.Errorf("cannot insert payment: %w", err)
 	}
@@ -167,11 +182,11 @@ func (repo *PostgresqlRepository) UpdatePayment(payment *models.Payment) error {
 	defer cancel()
 
 	query := `UPDATE payments SET pupil_id = $1, summ = $2, date = $3, purpose = $4 WHERE id = $5`
-	res, err := repo.db.ExecContext(ctx, query, payment.PupilId, payment.Summ, payment.Date, payment.Purpose, payment.Id)
+	res, err := repo.pool.Exec(ctx, query, payment.PupilId, payment.Summ, payment.Date, payment.Purpose, payment.Id)
 	if err != nil {
 		return fmt.Errorf("cannot update payment: %w", err)
 	}
-	aff, _ := res.RowsAffected()
+	aff := res.RowsAffected()
 	if aff == 0 {
 		return sql.ErrNoRows
 	}
@@ -183,11 +198,11 @@ func (repo *PostgresqlRepository) DeletePayment(payment *models.Payment) error {
 	defer cancel()
 
 	query := `DELETE FROM payments WHERE id = $1`
-	res, err := repo.db.ExecContext(ctx, query, payment.Id)
+	res, err := repo.pool.Exec(ctx, query, payment.Id)
 	if err != nil {
 		return fmt.Errorf("cannot delete payment: %w", err)
 	}
-	aff, _ := res.RowsAffected()
+	aff := res.RowsAffected()
 	if aff == 0 {
 		return sql.ErrNoRows
 	}
@@ -211,7 +226,7 @@ func (repo *PostgresqlRepository) GetAllPayments() ([]models.Payment, error) {
 		ORDER BY p.surname
 	`
 
-	rows, err := repo.db.QueryContext(ctx, query)
+	rows, err := repo.pool.Query(ctx, query)
 	if err != nil {
 		return nil, fmt.Errorf("could not get payments: %w", err)
 	}
@@ -245,7 +260,7 @@ func (repo *PostgresqlRepository) GetSumPayments() (int, error) {
 	query := `SELECT COALESCE(SUM(summ), 0) FROM payments`
 
 	var total int
-	err := repo.db.QueryRowContext(ctx, query).Scan(&total)
+	err := repo.pool.QueryRow(ctx, query).Scan(&total)
 	if err != nil {
 		return 0, fmt.Errorf("could not get sum payments: %w", err)
 	}
@@ -259,7 +274,7 @@ func (repo *PostgresqlRepository) GetSumExpenses() (int, error) {
 	query := `SELECT COALESCE(SUM(summ), 0) FROM expenses`
 
 	var total int
-	if err := repo.db.QueryRowContext(ctx, query).Scan(&total); err != nil {
+	if err := repo.pool.QueryRow(ctx, query).Scan(&total); err != nil {
 		return 0, fmt.Errorf("could not get sum expenses: %w", err)
 	}
 	return total, nil
@@ -271,7 +286,7 @@ func (repo *PostgresqlRepository) GetPupils() ([]models.Pupil, error) {
 	query := `SELECT id, name, surname, parent_name, parent_phone
 			  FROM pupils
 			  ORDER BY surname`
-	rows, err := repo.db.QueryContext(ctx, query)
+	rows, err := repo.pool.Query(ctx, query)
 	if err != nil {
 		return nil, fmt.Errorf("could not get pupils: %w", err)
 	}
@@ -302,7 +317,7 @@ func (repo *PostgresqlRepository) AddPupil(pupil *models.Pupil) error {
 	query := `INSERT INTO pupils( name, surname, parent_name, parent_phone)
 			  VALUES($1, $2, $3, $4)`
 
-	_, err := repo.db.ExecContext(ctx, query,
+	_, err := repo.pool.Exec(ctx, query,
 		pupil.Name,
 		pupil.Surname,
 		pupil.ParentName,
@@ -320,11 +335,11 @@ func (repo *PostgresqlRepository) UpdatePupil(pupil *models.Pupil) error {
 	query := `UPDATE pupils
 			  SET name = $1, surname = $2, parent_name = $3, parent_phone = $4
 			  WHERE id = $5`
-	res, err := repo.db.ExecContext(ctx, query, pupil.Name, pupil.Surname, pupil.ParentName, pupil.ParentPhone, pupil.ID)
+	res, err := repo.pool.Exec(ctx, query, pupil.Name, pupil.Surname, pupil.ParentName, pupil.ParentPhone, pupil.ID)
 	if err != nil {
 		return fmt.Errorf("cannot update pupil: %w", err)
 	}
-	aff, _ := res.RowsAffected()
+	aff := res.RowsAffected()
 	if aff == 0 {
 		return sql.ErrNoRows
 	}
@@ -335,11 +350,11 @@ func (repo *PostgresqlRepository) DeletePupil(pupil *models.Pupil) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	query := `DELETE FROM pupils WHERE id = $1`
-	res, err := repo.db.ExecContext(ctx, query, pupil.ID)
+	res, err := repo.pool.Exec(ctx, query, pupil.ID)
 	if err != nil {
 		return fmt.Errorf("cannot delete pupil: %w", err)
 	}
-	aff, _ := res.RowsAffected()
+	aff := res.RowsAffected()
 	if aff == 0 {
 		return sql.ErrNoRows
 	}
