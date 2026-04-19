@@ -24,7 +24,7 @@ func New(pool *pgxpool.Pool) *PostgresqlRepository {
 
 func NewPool(ctx context.Context, cfg config.Postgresql) (*pgxpool.Pool, error) {
 	dsn := fmt.Sprintf(
-		"postgres://%s:%s@%s:%d/%s?sslmode=disable",
+		"postgres://%s:%s@%s:%s/%s?sslmode=disable",
 		cfg.Username,
 		cfg.Password,
 		cfg.Host,
@@ -63,8 +63,8 @@ func (repo *PostgresqlRepository) Close() {
 	repo.pool.Close()
 }
 
-func (repo *PostgresqlRepository) GetExpenses() ([]models.Expense, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+func (repo *PostgresqlRepository) GetExpenses(ctx context.Context) ([]models.Expense, error) {
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
 	query := `
@@ -101,8 +101,8 @@ func (repo *PostgresqlRepository) GetExpenses() ([]models.Expense, error) {
 	return expenses, nil
 }
 
-func (repo *PostgresqlRepository) AddExpense(expense *models.Expense) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+func (repo *PostgresqlRepository) AddExpense(ctx context.Context, expense *models.Expense) error {
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
 	query := `
@@ -122,8 +122,8 @@ func (repo *PostgresqlRepository) AddExpense(expense *models.Expense) error {
 	return nil
 }
 
-func (repo *PostgresqlRepository) UpdateExpense(expense *models.Expense) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+func (repo *PostgresqlRepository) UpdateExpense(ctx context.Context, expense *models.Expense) error {
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
 	query := `
@@ -149,8 +149,8 @@ func (repo *PostgresqlRepository) UpdateExpense(expense *models.Expense) error {
 	return nil
 }
 
-func (repo *PostgresqlRepository) DeleteExpense(expense *models.Expense) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+func (repo *PostgresqlRepository) DeleteExpense(ctx context.Context, expense *models.Expense) error {
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
 	query := `DELETE FROM expenses WHERE id = $1`
@@ -165,8 +165,8 @@ func (repo *PostgresqlRepository) DeleteExpense(expense *models.Expense) error {
 	return nil
 }
 
-func (repo *PostgresqlRepository) AddPayment(payment *models.Payment) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+func (repo *PostgresqlRepository) AddPayment(ctx context.Context, payment *models.Payment) error {
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
 	query := `INSERT INTO payments(pupil_id, summ, date, purpose) VALUES ($1, $2, $3, $4)`
@@ -177,8 +177,8 @@ func (repo *PostgresqlRepository) AddPayment(payment *models.Payment) error {
 	return nil
 }
 
-func (repo *PostgresqlRepository) UpdatePayment(payment *models.Payment) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+func (repo *PostgresqlRepository) UpdatePayment(ctx context.Context, payment *models.Payment) error {
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
 	query := `UPDATE payments SET pupil_id = $1, summ = $2, date = $3, purpose = $4 WHERE id = $5`
@@ -193,8 +193,8 @@ func (repo *PostgresqlRepository) UpdatePayment(payment *models.Payment) error {
 	return nil
 }
 
-func (repo *PostgresqlRepository) DeletePayment(payment *models.Payment) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+func (repo *PostgresqlRepository) DeletePayment(ctx context.Context, payment *models.Payment) error {
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
 	query := `DELETE FROM payments WHERE id = $1`
@@ -209,8 +209,8 @@ func (repo *PostgresqlRepository) DeletePayment(payment *models.Payment) error {
 	return nil
 }
 
-func (repo *PostgresqlRepository) GetAllPayments() ([]models.Payment, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+func (repo *PostgresqlRepository) GetAllPayments(ctx context.Context) ([]models.Payment, error) {
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
 	query := `
@@ -253,8 +253,8 @@ func (repo *PostgresqlRepository) GetAllPayments() ([]models.Payment, error) {
 	return payments, nil
 }
 
-func (repo *PostgresqlRepository) GetSumPayments() (int, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+func (repo *PostgresqlRepository) GetSumPayments(ctx context.Context) (int, error) {
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
 	query := `SELECT COALESCE(SUM(summ), 0) FROM payments`
@@ -267,8 +267,8 @@ func (repo *PostgresqlRepository) GetSumPayments() (int, error) {
 	return total, nil
 }
 
-func (repo *PostgresqlRepository) GetSumExpenses() (int, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+func (repo *PostgresqlRepository) GetSumExpenses(ctx context.Context) (int, error) {
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
 	query := `SELECT COALESCE(SUM(summ), 0) FROM expenses`
@@ -280,8 +280,8 @@ func (repo *PostgresqlRepository) GetSumExpenses() (int, error) {
 	return total, nil
 }
 
-func (repo *PostgresqlRepository) GetPupils() ([]models.Pupil, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+func (repo *PostgresqlRepository) GetPupils(ctx context.Context) ([]models.Pupil, error) {
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 	query := `SELECT id, name, surname, parent_name, parent_phone
 			  FROM pupils
@@ -310,8 +310,8 @@ func (repo *PostgresqlRepository) GetPupils() ([]models.Pupil, error) {
 	return pupils, nil
 }
 
-func (repo *PostgresqlRepository) AddPupil(pupil *models.Pupil) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+func (repo *PostgresqlRepository) AddPupil(ctx context.Context, pupil *models.Pupil) error {
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
 	query := `INSERT INTO pupils( name, surname, parent_name, parent_phone)
@@ -328,8 +328,8 @@ func (repo *PostgresqlRepository) AddPupil(pupil *models.Pupil) error {
 	return nil
 }
 
-func (repo *PostgresqlRepository) UpdatePupil(pupil *models.Pupil) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+func (repo *PostgresqlRepository) UpdatePupil(ctx context.Context, pupil *models.Pupil) error {
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
 	query := `UPDATE pupils
@@ -346,8 +346,8 @@ func (repo *PostgresqlRepository) UpdatePupil(pupil *models.Pupil) error {
 	return nil
 }
 
-func (repo *PostgresqlRepository) DeletePupil(pupil *models.Pupil) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+func (repo *PostgresqlRepository) DeletePupil(ctx context.Context, pupil *models.Pupil) error {
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 	query := `DELETE FROM pupils WHERE id = $1`
 	res, err := repo.pool.Exec(ctx, query, pupil.ID)

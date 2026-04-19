@@ -1,13 +1,16 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
 	"simple_project/internal/config"
 	"simple_project/internal/models"
 	"simple_project/internal/repository"
+	"time"
 )
 
 type Application struct {
@@ -16,7 +19,7 @@ type Application struct {
 }
 
 type Handler interface {
-	Start(h http.Handler) error
+	Start(ctx context.Context, h http.Handler) error
 	GetExpenses(w http.ResponseWriter, r *http.Request)
 	AddExpense(w http.ResponseWriter, r *http.Request)
 	UpdateExpense(w http.ResponseWriter, r *http.Request)
@@ -31,12 +34,32 @@ type Handler interface {
 	DeletePupil(w http.ResponseWriter, r *http.Request)
 }
 
-func (app *Application) Start(h http.Handler) error {
+func (app *Application) Start(ctx context.Context, h http.Handler) error {
 	addr := app.config.AppPort
 	log.Printf("Starting server on %s\n", addr)
-	if err := http.ListenAndServe(":"+addr, h); err != nil {
+
+	server := &http.Server{
+		Addr:              ":" + addr,
+		Handler:           h,
+		ReadHeaderTimeout: 5 * time.Second,
+	}
+
+	go func() {
+		<-ctx.Done()
+
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+
+		if err := server.Shutdown(shutdownCtx); err != nil {
+			log.Printf("server shutdown error: %v", err)
+		}
+	}()
+
+	if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 		return fmt.Errorf("listen and serve: %w", err)
 	}
+
+	log.Println("server stopped")
 	return nil
 }
 
@@ -48,13 +71,15 @@ func New(db repository.Database, cfg config.Config) Handler {
 }
 
 func (app *Application) GetExpenses(w http.ResponseWriter, r *http.Request) {
-	expenses, err := app.DB.GetExpenses()
+	ctx := r.Context()
+
+	expenses, err := app.DB.GetExpenses(ctx)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	balance, err := app.GetBalance()
+	balance, err := app.GetBalance(ctx)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -80,7 +105,7 @@ func (app *Application) AddExpense(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := app.DB.AddExpense(&expense)
+	err := app.DB.AddExpense(r.Context(), &expense)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		log.Printf("add expense to db error: %v", err)
@@ -100,7 +125,7 @@ func (app *Application) UpdateExpense(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := app.DB.UpdateExpense(&expense)
+	err := app.DB.UpdateExpense(r.Context(), &expense)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		log.Printf("update expense to db error: %v", err)
@@ -120,7 +145,7 @@ func (app *Application) DeleteExpense(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := app.DB.DeleteExpense(&expense)
+	err := app.DB.DeleteExpense(r.Context(), &expense)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		log.Printf("delete expense to db error: %v", err)
@@ -129,7 +154,7 @@ func (app *Application) DeleteExpense(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *Application) GetPayments(w http.ResponseWriter, r *http.Request) {
-	payments, err := app.DB.GetAllPayments()
+	payments, err := app.DB.GetAllPayments(r.Context())
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -148,7 +173,7 @@ func (app *Application) AddPayment(w http.ResponseWriter, r *http.Request) {
 		log.Printf("json decode error: %v", err)
 		return
 	}
-	err := app.DB.AddPayment(&payment)
+	err := app.DB.AddPayment(r.Context(), &payment)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		log.Printf("add payment to db error: %v", err)
@@ -163,7 +188,7 @@ func (app *Application) UpdatePayment(w http.ResponseWriter, r *http.Request) {
 		log.Printf("json decode error: %v", err)
 		return
 	}
-	err := app.DB.UpdatePayment(&payment)
+	err := app.DB.UpdatePayment(r.Context(), &payment)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		log.Printf("update payment to db error: %v", err)
@@ -180,7 +205,7 @@ func (app *Application) DeletePayment(w http.ResponseWriter, r *http.Request) {
 		log.Printf("json decode error: %v", err)
 		return
 	}
-	err := app.DB.DeletePayment(&payment)
+	err := app.DB.DeletePayment(r.Context(), &payment)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		log.Printf("delete payment to db error: %v", err)
@@ -188,13 +213,13 @@ func (app *Application) DeletePayment(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (app *Application) GetBalance() (int, error) {
-	sumExpenses, err := app.DB.GetSumExpenses()
+func (app *Application) GetBalance(ctx context.Context) (int, error) {
+	sumExpenses, err := app.DB.GetSumExpenses(ctx)
 	if err != nil {
 		return 0, fmt.Errorf("get sum expenses: %w", err)
 	}
 
-	sumPayments, err := app.DB.GetSumPayments()
+	sumPayments, err := app.DB.GetSumPayments(ctx)
 	if err != nil {
 		return 0, fmt.Errorf("get sum payments: %w", err)
 	}
@@ -204,7 +229,7 @@ func (app *Application) GetBalance() (int, error) {
 }
 
 func (app *Application) GetPupils(w http.ResponseWriter, r *http.Request) {
-	pupils, err := app.DB.GetPupils()
+	pupils, err := app.DB.GetPupils(r.Context())
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -225,7 +250,7 @@ func (app *Application) AddPupil(w http.ResponseWriter, r *http.Request) {
 		log.Printf("json decode error: %v", err)
 		return
 	}
-	err := app.DB.AddPupil(&pupil)
+	err := app.DB.AddPupil(r.Context(), &pupil)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		log.Printf("add pupil to db error: %v", err)
@@ -243,7 +268,7 @@ func (app *Application) UpdatePupil(w http.ResponseWriter, r *http.Request) {
 		log.Printf("json decode error: %v", err)
 		return
 	}
-	err := app.DB.UpdatePupil(&pupil)
+	err := app.DB.UpdatePupil(r.Context(), &pupil)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		log.Printf("update pupil to db error: %v", err)
@@ -262,7 +287,7 @@ func (app *Application) DeletePupil(w http.ResponseWriter, r *http.Request) {
 		log.Printf("json decode error: %v", err)
 		return
 	}
-	err := app.DB.DeletePupil(&pupil)
+	err := app.DB.DeletePupil(r.Context(), &pupil)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		log.Printf("delete pupil to db error: %v", err)

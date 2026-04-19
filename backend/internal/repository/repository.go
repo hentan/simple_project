@@ -2,12 +2,10 @@ package repository
 
 import (
 	"context"
-	"database/sql"
 	"simple_project/internal/models"
 )
 
 type Database interface {
-	Connect() *sql.DB
 	GetExpenses(ctx context.Context) ([]models.Expense, error)
 	AddExpense(ctx context.Context, expense *models.Expense) error
 	UpdateExpense(ctx context.Context, expense *models.Expense) error

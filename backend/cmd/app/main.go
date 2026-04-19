@@ -2,22 +2,31 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
+	"os/signal"
 	"simple_project/internal/config"
 	"simple_project/internal/handlers"
 	"simple_project/internal/repository"
+	"syscall"
 )
 
 func main() {
-	ctx, _ := context.WithCancel(context.Background())
-	fmt.Println(ctx)
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
+
 	envFilePath := ".env"
 	cfg := config.NewConfig(envFilePath)
-	repo := repository.New(cfg.Postgresql)
-	handler := handlers.New(repo, *cfg)
-	err := handler.Start(handlers.Routes(handler))
+
+	pool, err := repository.NewPool(ctx, cfg.Postgresql)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("create postgresql pool: %v", err)
+	}
+	defer pool.Close()
+
+	repo := repository.New(pool)
+	handler := handlers.New(repo, *cfg)
+
+	if err := handler.Start(ctx, handlers.Routes(handler)); err != nil {
+		log.Fatalf("start server: %v", err)
 	}
 }
