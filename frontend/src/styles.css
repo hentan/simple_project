@@ -54,9 +54,15 @@ code, .mono {
   color: #0f172a;
   background: #ffffff;
   border: 1px solid #e2e8f0;
+  transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
 }
 
-.navLink:hover { opacity: 0.95; }
+.navLink:hover {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+  box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.22);
+  transform: translateY(-1px);
+}
 
 .navLinkActive {
   border-color: #0f172a;
@@ -136,8 +142,14 @@ code, .mono {
   background: #ffffff;
   color: inherit;
   box-shadow: 0 1px 1px rgba(15, 23, 42, 0.04);
+  transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
 }
-.menuCard:hover { opacity: 0.97; }
+.menuCard:hover {
+  background: #f8fafc;
+  border-color: #94a3b8;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08), 0 0 0 3px rgba(148, 163, 184, 0.18);
+  transform: translateY(-2px);
+}
 
 .menuTitle {
   font-weight: 700;
@@ -183,8 +195,14 @@ input:focus { border-color: #94a3b8; box-shadow: 0 0 0 3px rgba(148, 163, 184, 0
   cursor: pointer;
   font-weight: 600;
   text-decoration: none;
+  transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
 }
-.btn:hover { opacity: 0.95; }
+.btn:hover:not(:disabled) {
+  background: #1e293b;
+  border-color: #1e293b;
+  box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.14);
+  transform: translateY(-1px);
+}
 .btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
 .btnSecondary {
@@ -192,11 +210,21 @@ input:focus { border-color: #94a3b8; box-shadow: 0 0 0 3px rgba(148, 163, 184, 0
   background: #ffffff;
   color: #0f172a;
 }
+.btnSecondary:hover:not(:disabled) {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+  box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.22);
+}
 
 .btnDanger {
   border-color: #fecaca;
   background: #fee2e2;
   color: #7f1d1d;
+}
+.btnDanger:hover:not(:disabled) {
+  background: #fecaca;
+  border-color: #fca5a5;
+  box-shadow: 0 0 0 3px rgba(248, 113, 113, 0.22);
 }
 
 .btnSmall {
