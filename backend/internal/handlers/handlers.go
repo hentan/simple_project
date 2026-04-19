@@ -19,6 +19,7 @@ type Application struct {
 type Handler interface {
 	Start(ctx context.Context, h http.Handler) error
 	GetExpenses(w http.ResponseWriter, r *http.Request)
+	GetExpensesArchive(w http.ResponseWriter, r *http.Request)
 	AddExpense(w http.ResponseWriter, r *http.Request)
 	UpdateExpense(w http.ResponseWriter, r *http.Request)
 	DeleteExpense(w http.ResponseWriter, r *http.Request)

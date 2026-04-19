@@ -18,6 +18,7 @@ func TestRoutes(t *testing.T) {
 		path   string
 		want   string
 	}{
+		{name: "get expenses archive", method: http.MethodGet, path: "/expenses/archive", want: "GetExpensesArchive"},
 		{name: "get expenses", method: http.MethodGet, path: "/expenses", want: "GetExpenses"},
 		{name: "post expenses", method: http.MethodPost, path: "/expenses", want: "AddExpense"},
 		{name: "put expenses", method: http.MethodPut, path: "/expenses", want: "UpdateExpense"},
@@ -30,6 +31,7 @@ func TestRoutes(t *testing.T) {
 		{name: "post pupils", method: http.MethodPost, path: "/pupils", want: "AddPupil"},
 		{name: "put pupils", method: http.MethodPut, path: "/pupils", want: "UpdatePupil"},
 		{name: "delete pupils", method: http.MethodDelete, path: "/pupils", want: "DeletePupil"},
+		{name: "strip expenses archive trailing slash", method: http.MethodGet, path: "/expenses/archive/", want: "GetExpensesArchive"},
 		{name: "strip trailing slash", method: http.MethodGet, path: "/expenses/", want: "GetExpenses"},
 	}
 

@@ -67,6 +67,11 @@ export default function Money({ title = "Потраченные деньги" }:
             Данные загружаются из <code>/expenses</code> (в ответе также приходит <code>Balance</code>),
             и изменяются через <code>/expenses</code> (POST/PUT/DELETE).
           </div>
+          <div className="headerActions">
+            <a className="btn btnSecondary" href="#/expenses-archive">
+              Архив расходов
+            </a>
+          </div>
         </div>
         <div className="kpiRow">
           <div className="kpi">

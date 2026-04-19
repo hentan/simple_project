@@ -81,6 +81,65 @@ func TestApplicationGetExpenses(t *testing.T) {
 	}
 }
 
+func TestApplicationGetExpensesArchive(t *testing.T) {
+	archivedAt := time.Date(2026, 4, 2, 12, 0, 0, 0, time.UTC)
+	date := time.Date(2026, 4, 1, 12, 0, 0, 0, time.UTC)
+
+	tests := []struct {
+		name       string
+		db         *fakeDB
+		wantStatus int
+		assertBody func(t *testing.T, body *bytes.Buffer)
+	}{
+		{
+			name: "returns archived expenses",
+			db: &fakeDB{
+				expensesArchive: []models.ExpenseArchive{
+					{
+						ArchivedAt: archivedAt,
+						Operation:  "DELETE",
+						ID:         1,
+						Date:       date,
+						Purpose:    "books",
+						PupilID:    2,
+						Amount:     300,
+						Surname:    "Ivanov",
+					},
+				},
+			},
+			wantStatus: http.StatusOK,
+			assertBody: func(t *testing.T, body *bytes.Buffer) {
+				var response []models.ExpenseArchive
+				require.NoError(t, json.NewDecoder(body).Decode(&response))
+				require.Len(t, response, 1)
+				require.Equal(t, "DELETE", response[0].Operation)
+				require.Equal(t, "books", response[0].Purpose)
+			},
+		},
+		{
+			name:       "returns db error",
+			db:         &fakeDB{getExpensesArchiveErr: errDB},
+			wantStatus: http.StatusInternalServerError,
+			assertBody: func(t *testing.T, body *bytes.Buffer) {
+				require.Contains(t, body.String(), errDB.Error())
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			app := &Application{DB: tt.db}
+			req := httptest.NewRequest(http.MethodGet, "/expenses/archive", nil)
+			rr := httptest.NewRecorder()
+
+			app.GetExpensesArchive(rr, req)
+
+			require.Equal(t, tt.wantStatus, rr.Code)
+			tt.assertBody(t, rr.Body)
+		})
+	}
+}
+
 func TestApplicationExpenseMutations(t *testing.T) {
 	expense := models.Expense{ID: 4, Purpose: "flowers", PupilID: 5, Amount: 250}
 

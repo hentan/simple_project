@@ -1,4 +1,4 @@
-import type { Expense, ExpenseWithBalanceResponse, Payment, Pupil } from "./types";
+import type { Expense, ExpenseArchive, ExpenseWithBalanceResponse, Payment, Pupil } from "./types";
 
 const API_BASE = (import.meta as any).env?.VITE_API_BASE ?? "/api";
 
@@ -45,16 +45,62 @@ function normalizeExpenseWithBalance(raw: any): { expenses: Expense[]; balance: 
   return { expenses: Array.isArray(expenses) ? expenses : [], balance: Number.isFinite(balance) ? balance : 0 };
 }
 
+function normalizeExpense(raw: any): Expense {
+  const id = Number(raw?.id ?? raw?.ID ?? raw?.Id ?? 0);
+  const pupil_id = Number(raw?.pupil_id ?? raw?.pupilId ?? raw?.PupilID ?? raw?.PupilId ?? 0);
+  const summ = Number(raw?.summ ?? raw?.Summ ?? raw?.amount ?? raw?.Amount ?? 0);
+
+  const dateRaw = raw?.date ?? raw?.Date;
+  const date = typeof dateRaw === "string" ? dateRaw : "";
+
+  const giftForRaw = raw?.gift_for ?? raw?.giftFor ?? raw?.GiftFor ?? raw?.purpose ?? raw?.Purpose;
+  const gift_for = typeof giftForRaw === "string" ? giftForRaw : "";
+
+  const surnameRaw = raw?.surname ?? raw?.Surname;
+  const surname = typeof surnameRaw === "string" ? surnameRaw : "";
+
+  return {
+    id,
+    date,
+    gift_for,
+    pupil_id,
+    summ: Number.isFinite(summ) ? summ : 0,
+    surname
+  };
+}
+
+function normalizeExpenseArchive(raw: any): ExpenseArchive {
+  const expense = normalizeExpense(raw);
+  const archivedAtRaw = raw?.archived_at ?? raw?.archivedAt ?? raw?.ArchivedAt;
+  const operationRaw = raw?.op ?? raw?.Operation ?? raw?.operation;
+
+  return {
+    ...expense,
+    archived_at: typeof archivedAtRaw === "string" ? archivedAtRaw : "",
+    op: typeof operationRaw === "string" ? operationRaw : ""
+  };
+}
+
 // GET /expenses -> ExpenseWithBalanceResponse (expenses + balance)
 export async function getExpensesWithBalance(): Promise<{ expenses: Expense[]; balance: number }> {
   const raw = await request<ExpenseWithBalanceResponse>("/expenses", { method: "GET" });
-  return normalizeExpenseWithBalance(raw);
+  const data = normalizeExpenseWithBalance(raw);
+  return {
+    expenses: data.expenses.map(normalizeExpense).filter((e) => Number.isFinite(e.id)),
+    balance: data.balance
+  };
 }
 
 // Иногда нужен только список расходов.
 export async function getExpenses(): Promise<Expense[]> {
   const { expenses } = await getExpensesWithBalance();
   return expenses;
+}
+
+export async function getExpensesArchive(): Promise<ExpenseArchive[]> {
+  const raw = await request<any>("/expenses/archive", { method: "GET" });
+  const arr = Array.isArray(raw) ? raw : [];
+  return arr.map(normalizeExpenseArchive).filter((e) => Number.isFinite(e.id));
 }
 
 export type ExpenseInput = {

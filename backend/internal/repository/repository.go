@@ -7,6 +7,7 @@ import (
 
 type Store interface {
 	GetExpenses(ctx context.Context) ([]models.Expense, error)
+	GetExpensesArchive(ctx context.Context) ([]models.ExpenseArchive, error)
 	AddExpense(ctx context.Context, expense *models.Expense) error
 	UpdateExpense(ctx context.Context, expense *models.Expense) error
 	DeleteExpense(ctx context.Context, expense *models.Expense) error

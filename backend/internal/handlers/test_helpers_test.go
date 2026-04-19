@@ -16,27 +16,29 @@ import (
 var errDB = errors.New("db failed")
 
 type fakeDB struct {
-	expenses []models.Expense
-	payments []models.Payment
-	pupils   []models.Pupil
+	expenses        []models.Expense
+	expensesArchive []models.ExpenseArchive
+	payments        []models.Payment
+	pupils          []models.Pupil
 
 	expensesTotal int
 	paymentsTotal int
 
-	getExpensesErr    error
-	addExpenseErr     error
-	updateExpenseErr  error
-	deleteExpenseErr  error
-	getPaymentsErr    error
-	addPaymentErr     error
-	updatePaymentErr  error
-	deletePaymentErr  error
-	getSumExpensesErr error
-	getSumPaymentsErr error
-	getPupilsErr      error
-	addPupilErr       error
-	updatePupilErr    error
-	deletePupilErr    error
+	getExpensesErr        error
+	getExpensesArchiveErr error
+	addExpenseErr         error
+	updateExpenseErr      error
+	deleteExpenseErr      error
+	getPaymentsErr        error
+	addPaymentErr         error
+	updatePaymentErr      error
+	deletePaymentErr      error
+	getSumExpensesErr     error
+	getSumPaymentsErr     error
+	getPupilsErr          error
+	addPupilErr           error
+	updatePupilErr        error
+	deletePupilErr        error
 
 	addedExpense   *models.Expense
 	updatedExpense *models.Expense
@@ -53,6 +55,10 @@ var _ repository.Store = (*fakeDB)(nil)
 
 func (db *fakeDB) GetExpenses(ctx context.Context) ([]models.Expense, error) {
 	return db.expenses, db.getExpensesErr
+}
+
+func (db *fakeDB) GetExpensesArchive(ctx context.Context) ([]models.ExpenseArchive, error) {
+	return db.expensesArchive, db.getExpensesArchiveErr
 }
 
 func (db *fakeDB) AddExpense(ctx context.Context, expense *models.Expense) error {
@@ -135,6 +141,10 @@ func (h *spyHandler) Start(ctx context.Context, handler http.Handler) error {
 
 func (h *spyHandler) GetExpenses(w http.ResponseWriter, r *http.Request) {
 	h.write(w, "GetExpenses")
+}
+
+func (h *spyHandler) GetExpensesArchive(w http.ResponseWriter, r *http.Request) {
+	h.write(w, "GetExpensesArchive")
 }
 
 func (h *spyHandler) AddExpense(w http.ResponseWriter, r *http.Request) {

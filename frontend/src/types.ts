@@ -7,6 +7,11 @@ export type Expense = {
   surname: string;
 };
 
+export type ExpenseArchive = Expense & {
+  archived_at: string;
+  op: string;
+};
+
 export type Pupil = {
     id: number;
     surname: string;

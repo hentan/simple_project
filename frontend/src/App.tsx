@@ -1,16 +1,18 @@
 import { useEffect, useMemo, useState } from "react";
 import Home, { type HomeLink } from "./pages/Home";
+import ExpensesArchive from "./pages/ExpensesArchive";
 import Money from "./pages/Money";
 import Payments from "./pages/Payments";
 import Pupils from "./pages/Pupils";
 
-type RouteKey = "" | "money" | "pupils" | "payments";
+type RouteKey = "" | "money" | "pupils" | "payments" | "expenses-archive";
 
 function normalizeHashToRoute(hash: string): RouteKey {
   const raw = hash.replace(/^#\/?/, "").trim();
   if (raw === "money") return "money";
   if (raw === "pupils") return "pupils";
   if (raw === "payments") return "payments";
+  if (raw === "expenses-archive") return "expenses-archive";
   return "";
 }
 
@@ -43,6 +45,11 @@ export default function App() {
         title: "Потраченные деньги",
         description: "Сданные деньги + расчёт потраченные",
         href: "#/payments"
+      },
+      {
+        title: "Архив расходов",
+        description: "Старые версии расходов после изменения или удаления.",
+        href: "#/expenses-archive"
       }
     ]
   ), []);
@@ -55,6 +62,8 @@ export default function App() {
         return <Pupils />;
       case "payments":
         return <Payments />;
+      case "expenses-archive":
+        return <ExpensesArchive />;
       default:
         return <Home links={links} />;
     }
@@ -78,6 +87,9 @@ export default function App() {
           </a>
           <a className={linkClass(route === "payments")} href="#/payments">
             Сданные деньги
+          </a>
+          <a className={linkClass(route === "expenses-archive")} href="#/expenses-archive">
+            Архив расходов
           </a>
         </div>
       </div>

@@ -34,6 +34,21 @@ func (app *Application) GetExpenses(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (app *Application) GetExpensesArchive(w http.ResponseWriter, r *http.Request) {
+	expenses, err := app.DB.GetExpensesArchive(r.Context())
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+
+	if err := json.NewEncoder(w).Encode(expenses); err != nil {
+		log.Printf("json encode error: %v", err)
+	}
+}
+
 func (app *Application) AddExpense(w http.ResponseWriter, r *http.Request) {
 	var expense models.Expense
 
