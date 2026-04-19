@@ -16,13 +16,13 @@ func TestApplicationGetBalance(t *testing.T) {
 	}{
 		{
 			name:            "subtracts expenses from payments",
-			db:              &fakeDB{sumPayments: 1000, sumExpenses: 350},
+			db:              &fakeDB{paymentsTotal: 1000, expensesTotal: 350},
 			expectedBalance: 650,
 			requireErr:      require.NoError,
 		},
 		{
 			name:            "allows negative balance",
-			db:              &fakeDB{sumPayments: 100, sumExpenses: 250},
+			db:              &fakeDB{paymentsTotal: 100, expensesTotal: 250},
 			expectedBalance: -150,
 			requireErr:      require.NoError,
 		},

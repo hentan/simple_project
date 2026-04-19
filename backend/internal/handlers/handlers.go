@@ -12,7 +12,7 @@ import (
 )
 
 type Application struct {
-	DB     repository.Database
+	DB     repository.Store
 	config config.Config
 }
 
@@ -61,7 +61,7 @@ func (app *Application) Start(ctx context.Context, h http.Handler) error {
 	return nil
 }
 
-func New(db repository.Database, cfg config.Config) Handler {
+func New(db repository.Store, cfg config.Config) Handler {
 	return &Application{
 		DB:     db,
 		config: cfg,

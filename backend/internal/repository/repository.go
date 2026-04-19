@@ -5,7 +5,7 @@ import (
 	"simple_project/internal/models"
 )
 
-type Database interface {
+type Store interface {
 	GetExpenses(ctx context.Context) ([]models.Expense, error)
 	AddExpense(ctx context.Context, expense *models.Expense) error
 	UpdateExpense(ctx context.Context, expense *models.Expense) error
@@ -13,9 +13,9 @@ type Database interface {
 	AddPayment(ctx context.Context, payment *models.Payment) error
 	UpdatePayment(ctx context.Context, payment *models.Payment) error
 	DeletePayment(ctx context.Context, payment *models.Payment) error
-	GetAllPayments(ctx context.Context) ([]models.Payment, error)
-	GetSumPayments(ctx context.Context) (int, error)
-	GetSumExpenses(ctx context.Context) (int, error)
+	GetPayments(ctx context.Context) ([]models.Payment, error)
+	GetPaymentsTotal(ctx context.Context) (int, error)
+	GetExpensesTotal(ctx context.Context) (int, error)
 	GetPupils(ctx context.Context) ([]models.Pupil, error)
 	AddPupil(ctx context.Context, pupil *models.Pupil) error
 	UpdatePupil(ctx context.Context, pupil *models.Pupil) error

@@ -20,8 +20,8 @@ type fakeDB struct {
 	payments []models.Payment
 	pupils   []models.Pupil
 
-	sumExpenses int
-	sumPayments int
+	expensesTotal int
+	paymentsTotal int
 
 	getExpensesErr    error
 	addExpenseErr     error
@@ -49,7 +49,7 @@ type fakeDB struct {
 	deletedPupil   *models.Pupil
 }
 
-var _ repository.Database = (*fakeDB)(nil)
+var _ repository.Store = (*fakeDB)(nil)
 
 func (db *fakeDB) GetExpenses(ctx context.Context) ([]models.Expense, error) {
 	return db.expenses, db.getExpensesErr
@@ -91,16 +91,16 @@ func (db *fakeDB) DeletePayment(ctx context.Context, payment *models.Payment) er
 	return db.deletePaymentErr
 }
 
-func (db *fakeDB) GetAllPayments(ctx context.Context) ([]models.Payment, error) {
+func (db *fakeDB) GetPayments(ctx context.Context) ([]models.Payment, error) {
 	return db.payments, db.getPaymentsErr
 }
 
-func (db *fakeDB) GetSumPayments(ctx context.Context) (int, error) {
-	return db.sumPayments, db.getSumPaymentsErr
+func (db *fakeDB) GetPaymentsTotal(ctx context.Context) (int, error) {
+	return db.paymentsTotal, db.getSumPaymentsErr
 }
 
-func (db *fakeDB) GetSumExpenses(ctx context.Context) (int, error) {
-	return db.sumExpenses, db.getSumExpensesErr
+func (db *fakeDB) GetExpensesTotal(ctx context.Context) (int, error) {
+	return db.expensesTotal, db.getSumExpensesErr
 }
 
 func (db *fakeDB) GetPupils(ctx context.Context) ([]models.Pupil, error) {

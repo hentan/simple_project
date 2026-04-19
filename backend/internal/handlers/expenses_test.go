@@ -25,9 +25,9 @@ func TestApplicationGetExpenses(t *testing.T) {
 		{
 			name: "returns expenses with balance",
 			db: &fakeDB{
-				expenses:    []models.Expense{{Id: 1, Date: date, GiftFor: "books", PupilId: 2, Summ: 300, Surname: "Ivanov"}},
-				sumPayments: 1000,
-				sumExpenses: 300,
+				expenses:      []models.Expense{{ID: 1, Date: date, Purpose: "books", PupilID: 2, Amount: 300, Surname: "Ivanov"}},
+				paymentsTotal: 1000,
+				expensesTotal: 300,
 			},
 			wantStatus: http.StatusOK,
 			assertBody: func(t *testing.T, body *bytes.Buffer) {
@@ -35,7 +35,7 @@ func TestApplicationGetExpenses(t *testing.T) {
 				require.NoError(t, json.NewDecoder(body).Decode(&response))
 				require.Equal(t, 700, response.Balance)
 				require.Len(t, response.Expenses, 1)
-				require.Equal(t, "books", response.Expenses[0].GiftFor)
+				require.Equal(t, "books", response.Expenses[0].Purpose)
 			},
 		},
 		{
@@ -62,7 +62,7 @@ func TestApplicationGetExpenses(t *testing.T) {
 			db:         &fakeDB{getSumPaymentsErr: errDB},
 			wantStatus: http.StatusInternalServerError,
 			assertBody: func(t *testing.T, body *bytes.Buffer) {
-				require.Contains(t, body.String(), "get sum payments")
+				require.Contains(t, body.String(), "get payments total")
 			},
 		},
 	}
@@ -82,7 +82,7 @@ func TestApplicationGetExpenses(t *testing.T) {
 }
 
 func TestApplicationExpenseMutations(t *testing.T) {
-	expense := models.Expense{Id: 4, GiftFor: "flowers", PupilId: 5, Summ: 250}
+	expense := models.Expense{ID: 4, Purpose: "flowers", PupilID: 5, Amount: 250}
 
 	tests := []struct {
 		name       string
@@ -102,7 +102,7 @@ func TestApplicationExpenseMutations(t *testing.T) {
 			wantStatus: http.StatusOK,
 			assertDB: func(t *testing.T, db *fakeDB) {
 				require.NotNil(t, db.addedExpense)
-				require.Equal(t, expense.GiftFor, db.addedExpense.GiftFor)
+				require.Equal(t, expense.Purpose, db.addedExpense.Purpose)
 			},
 		},
 		{
@@ -114,7 +114,7 @@ func TestApplicationExpenseMutations(t *testing.T) {
 			wantStatus: http.StatusOK,
 			assertDB: func(t *testing.T, db *fakeDB) {
 				require.NotNil(t, db.updatedExpense)
-				require.Equal(t, expense.Id, db.updatedExpense.Id)
+				require.Equal(t, expense.ID, db.updatedExpense.ID)
 			},
 		},
 		{
@@ -126,7 +126,7 @@ func TestApplicationExpenseMutations(t *testing.T) {
 			wantStatus: http.StatusOK,
 			assertDB: func(t *testing.T, db *fakeDB) {
 				require.NotNil(t, db.deletedExpense)
-				require.Equal(t, expense.Id, db.deletedExpense.Id)
+				require.Equal(t, expense.ID, db.deletedExpense.ID)
 			},
 		},
 		{

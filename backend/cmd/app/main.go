@@ -17,7 +17,7 @@ func main() {
 	envFilePath := ".env"
 	cfg := config.NewConfig(envFilePath)
 
-	pool, err := repository.NewPool(ctx, cfg.Postgresql)
+	pool, err := repository.NewPool(ctx, cfg.Postgres)
 	if err != nil {
 		log.Fatalf("create postgresql pool: %v", err)
 	}

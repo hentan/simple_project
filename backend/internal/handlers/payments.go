@@ -9,7 +9,7 @@ import (
 )
 
 func (app *Application) GetPayments(w http.ResponseWriter, r *http.Request) {
-	payments, err := app.DB.GetAllPayments(r.Context())
+	payments, err := app.DB.GetPayments(r.Context())
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

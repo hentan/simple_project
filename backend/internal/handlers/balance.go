@@ -6,16 +6,16 @@ import (
 )
 
 func (app *Application) GetBalance(ctx context.Context) (int, error) {
-	sumExpenses, err := app.DB.GetSumExpenses(ctx)
+	expensesTotal, err := app.DB.GetExpensesTotal(ctx)
 	if err != nil {
-		return 0, fmt.Errorf("get sum expenses: %w", err)
+		return 0, fmt.Errorf("get expenses total: %w", err)
 	}
 
-	sumPayments, err := app.DB.GetSumPayments(ctx)
+	paymentsTotal, err := app.DB.GetPaymentsTotal(ctx)
 	if err != nil {
-		return 0, fmt.Errorf("get sum payments: %w", err)
+		return 0, fmt.Errorf("get payments total: %w", err)
 	}
 
-	summBalance := sumPayments - sumExpenses
-	return summBalance, nil
+	balance := paymentsTotal - expensesTotal
+	return balance, nil
 }

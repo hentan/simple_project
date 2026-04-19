@@ -7,15 +7,15 @@ import (
 )
 
 const (
-	envAppPort       = "APP_PORT"
-	envVarDbHost     = "POSTGRES_HOST"
-	envVarDbPort     = "POSTGRES_PORT"
-	envVarDbUser     = "POSTGRES_USER"
-	envVarDbPassword = "POSTGRES_PASSWORD"
-	envVarDbName     = "POSTGRES_DB"
+	envAppPort             = "APP_PORT"
+	envVarPostgresHost     = "POSTGRES_HOST"
+	envVarPostgresPort     = "POSTGRES_PORT"
+	envVarPostgresUser     = "POSTGRES_USER"
+	envVarPostgresPassword = "POSTGRES_PASSWORD"
+	envVarPostgresName     = "POSTGRES_DB"
 )
 
-type Postgresql struct {
+type Postgres struct {
 	Host     string
 	Port     string
 	Username string
@@ -24,24 +24,24 @@ type Postgresql struct {
 }
 
 type Config struct {
-	AppPort    string
-	Postgresql Postgresql
+	AppPort  string
+	Postgres Postgres
 }
 
 func NewConfig(path string) *Config {
 	_ = godotenv.Load()
 
-	var db Postgresql = Postgresql{
-		Host:     getEnv(envVarDbHost, "postgres"),
-		Port:     getEnv(envVarDbPort, "5432"),
-		Username: getEnv(envVarDbUser, "postgres"),
-		Password: getEnv(envVarDbPassword, "postgres"),
-		Database: getEnv(envVarDbName, "postgres"),
+	db := Postgres{
+		Host:     getEnv(envVarPostgresHost, "postgres"),
+		Port:     getEnv(envVarPostgresPort, "5432"),
+		Username: getEnv(envVarPostgresUser, "postgres"),
+		Password: getEnv(envVarPostgresPassword, "postgres"),
+		Database: getEnv(envVarPostgresName, "postgres"),
 	}
 
 	return &Config{
-		AppPort:    getEnv(envAppPort, "8080"),
-		Postgresql: db,
+		AppPort:  getEnv(envAppPort, "8080"),
+		Postgres: db,
 	}
 }
 

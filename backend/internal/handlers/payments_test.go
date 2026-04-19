@@ -25,7 +25,7 @@ func TestApplicationGetPayments(t *testing.T) {
 		{
 			name: "returns payments",
 			db: &fakeDB{payments: []models.Payment{{
-				Id: 1, Date: date, PupilId: 2, Summ: 500, Surname: "Petrov", Purpose: "monthly",
+				ID: 1, Date: date, PupilID: 2, Amount: 500, Surname: "Petrov", Purpose: "monthly",
 			}}},
 			wantStatus: http.StatusOK,
 			assertBody: func(t *testing.T, body *bytes.Buffer) {
@@ -60,7 +60,7 @@ func TestApplicationGetPayments(t *testing.T) {
 }
 
 func TestApplicationPaymentMutations(t *testing.T) {
-	payment := models.Payment{Id: 6, PupilId: 7, Summ: 800, Purpose: "class fund"}
+	payment := models.Payment{ID: 6, PupilID: 7, Amount: 800, Purpose: "class fund"}
 
 	tests := []struct {
 		name       string
@@ -92,7 +92,7 @@ func TestApplicationPaymentMutations(t *testing.T) {
 			wantStatus: http.StatusOK,
 			assertDB: func(t *testing.T, db *fakeDB) {
 				require.NotNil(t, db.updatedPayment)
-				require.Equal(t, payment.Id, db.updatedPayment.Id)
+				require.Equal(t, payment.ID, db.updatedPayment.ID)
 			},
 		},
 		{
@@ -104,7 +104,7 @@ func TestApplicationPaymentMutations(t *testing.T) {
 			wantStatus: http.StatusOK,
 			assertDB: func(t *testing.T, db *fakeDB) {
 				require.NotNil(t, db.deletedPayment)
-				require.Equal(t, payment.Id, db.deletedPayment.Id)
+				require.Equal(t, payment.ID, db.deletedPayment.ID)
 			},
 		},
 		{
