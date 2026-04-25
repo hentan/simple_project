@@ -1,1 +1,5 @@
 /frontend/node_modules/
+/launcher/bin/
+/launcher/obj/
+/tools/launcher/publish/
+/SimpleProjectLauncher.exe
